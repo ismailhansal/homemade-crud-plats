@@ -1,68 +1,106 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
+@layer base {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    --background: 45 30% 98%;
+    --foreground: 30 10% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 30 10% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 30 10% 10%;
+
+    --primary: 20 75% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 44 36% 96%;
+    --secondary-foreground: 30 10% 10%;
+
+    --muted: 44 36% 90%;
+    --muted-foreground: 30 10% 40%;
+
+    --accent: 36 40% 92%;
+    --accent-foreground: 30 10% 10%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 30 10% 90%;
+    --input: 30 10% 90%;
+    --ring: 20 75% 45%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 44 36% 96%;
+    --sidebar-foreground: 30 10% 30%;
+    --sidebar-primary: 20 75% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 36 40% 92%;
+    --sidebar-accent-foreground: 30 10% 10%;
+    --sidebar-border: 30 10% 85%;
+    --sidebar-ring: 20 75% 45%;
   }
-  a:hover {
-    color: #747bff;
+
+  [data-theme='dark'] {
+    --background: 30 10% 10%;
+    --foreground: 44 36% 96%;
+
+    --card: 30 8% 15%;
+    --card-foreground: 44 36% 96%;
+
+    --popover: 30 8% 15%;
+    --popover-foreground: 44 36% 96%;
+
+    --primary: 20 75% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 30 8% 20%;
+    --secondary-foreground: 44 36% 96%;
+
+    --muted: 30 8% 20%;
+    --muted-foreground: 44 10% 70%;
+
+    --accent: 30 8% 25%;
+    --accent-foreground: 44 36% 96%;
+
+    --destructive: 0 62.8% 40.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 30 8% 25%;
+    --input: 30 8% 25%;
+    --ring: 20 75% 45%;
+
+    --sidebar-background: 30 10% 15%;
+    --sidebar-foreground: 44 36% 90%;
+    --sidebar-primary: 20 75% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 30 8% 25%;
+    --sidebar-accent-foreground: 44 36% 96%;
+    --sidebar-border: 30 8% 25%;
+    --sidebar-ring: 20 75% 45%;
   }
-  button {
-    background-color: #f9f9f9;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .button-transition {
+    @apply transition-all duration-300 ease-in-out transform hover:scale-105;
+  }
+  
+  .card-hover {
+    @apply transition-all duration-300 ease-in-out hover:shadow-lg hover:-translate-y-1;
   }
 }
