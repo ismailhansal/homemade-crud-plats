@@ -13,6 +13,8 @@ import java.util.Random;
 
 @RestController
 @RequestMapping("/api/plats")
+@CrossOrigin(origins = "http://localhost:3001")  // Autorise uniquement l'origine spécifiée
+
 
 public class PlatsController {
 

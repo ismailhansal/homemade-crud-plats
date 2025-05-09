@@ -102,6 +102,8 @@ const SAMPLE_ORDERS = [
   },
 ];
 
+
+
 const Profile: React.FC = () => {
 
 
@@ -118,6 +120,42 @@ const Profile: React.FC = () => {
 
     }
   };
+
+
+  const handleDishSubmitt = async (formData: any) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/plats/${formData.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData), // Pas besoin de transformation
+      });
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la mise à jour du plat");
+      }
+
+      const updatedDish = await response.json();
+      console.log("Plat mis à jour avec succès :", updatedDish);
+
+      // Met à jour l'état local
+      setDishes(prev =>
+          prev.map(d => (d.id === updatedDish.id ? updatedDish : d))
+      );
+
+      setEditingDish(null); // Ferme le formulaire d'édition
+    } catch (error) {
+      console.error("Erreur pendant la mise à jour :", error);
+    }
+  };
+
+
+
+
+
+
+
 
 
 
@@ -183,11 +221,22 @@ const Profile: React.FC = () => {
   // Handle form submission for dish editing/adding
 
 
-  // Handle dish deletion
-  const handleDeleteDish = (id) => {
-    // Here you would handle the dish deletion logic
-    console.log(`Deleting dish with id: ${id}`);
-    // In a real app, you would make an API call to delete the dish
+  const handleDishDelete = async (id: number) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/plats/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la suppression du plat");
+      }
+
+      console.log("Plat supprimé avec succès");
+      // Mise à jour de l'état local pour refléter la suppression
+      setDishes(prev => prev.filter(dish => dish.id !== id));
+    } catch (error) {
+      console.error("Erreur pendant la suppression :", error);
+    }
   };
 
   return (
@@ -516,7 +565,21 @@ const Profile: React.FC = () => {
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => setEditingDish(dish.id)}
+                                        onClick={() => {
+                                          // Transformation : convertir les chaînes en tableaux
+                                          const transformedDish = {
+                                            ...dish,
+                                            ingredients: typeof dish.ingredients === "string"
+                                                ? dish.ingredients.split(",").map(i => i.trim())
+                                                : dish.ingredients,
+                                            allergies: typeof dish.allergies === "string"
+                                                ? dish.allergies.split(",").map(a => a.trim())
+                                                : dish.allergies,
+                                          };
+
+                                          console.log("Plat transformé pour édition:", transformedDish); // Débogage
+                                          setEditingDish(transformedDish);
+                                        }}
                                     >
                                       <Edit className="h-4 w-4 mr-1" />
                                       Edit
@@ -524,7 +587,7 @@ const Profile: React.FC = () => {
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => handleDeleteDish(dish.id)}
+                                        onClick={() => handleDishDelete(dish.id)}
                                     >
                                       <Trash2 className="h-4 w-4 mr-1" />
                                       Delete
@@ -608,6 +671,8 @@ const Profile: React.FC = () => {
                           open={!!editingDish}
                           onOpenChange={(open) => !open && setEditingDish(null)}
                       >
+
+
                         <DialogContent className="sm:max-w-md md:max-w-lg">
                           <DialogHeader>
                             <DialogTitle>Edit Dish</DialogTitle>
@@ -618,7 +683,7 @@ const Profile: React.FC = () => {
                           {editingDish && (
                               <DishForm
                                   initialValues={editingDish}
-                                  onSubmit={handleDishSubmit}
+                                  onSubmit={handleDishSubmitt}
                                   onCancel={() => setEditingDish(null)}
                                   submitLabel="Save Changes"
                               />

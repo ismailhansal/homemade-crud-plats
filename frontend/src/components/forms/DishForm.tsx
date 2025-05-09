@@ -8,6 +8,15 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Clock, Utensils, Users, Plus, Trash2, Star } from "lucide-react";
 
+
+
+
+
+
+
+
+
+
 interface Ingredient {
   id: number;
   value: string;
@@ -20,6 +29,7 @@ interface Allergy {
 
 interface DishFormProps {
   initialValues?: {
+
     nom: string;
     description: string;
     prix: number;
@@ -57,6 +67,7 @@ const cuisineOptions = [
 
 const DishForm = ({
                     initialValues = {
+
                       nom: '',
                       description: '',
                       prix: 0,
@@ -80,6 +91,15 @@ const DishForm = ({
       initialValues.allergies?.map((allergy, index) => ({ id: index + 1, value: allergy })) || [{ id: 1, value: "" }]
   );
   const [rating, setRating] = useState(initialValues.note || 0);
+
+
+
+
+  console.log("Données reçues par DishForm:", initialValues);
+
+
+
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -153,6 +173,23 @@ const DishForm = ({
     };
     onSubmit(formData);
   };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   return (
       <form onSubmit={handleSubmit} className="space-y-4">
