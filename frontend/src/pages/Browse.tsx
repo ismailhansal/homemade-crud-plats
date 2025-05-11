@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Card } from "@/components/ui/card";
@@ -17,99 +17,39 @@ import {
 } from "@/components/ui/pagination";
 import { Search, Filter, Star, ChefHat, Clock } from "lucide-react";
 
-// Sample data with better images
-const DISHES = [
-  {
-    id: 1,
-    name: "Homemade Lasagna",
-    description: "Traditional Italian lasagna with béchamel sauce",
-    price: 15.99,
-    image: "https://images.unsplash.com/photo-1574894709920-11b28e7367e3?auto=format&fit=crop&w=600&h=350",
-    cook: "Maria G.",
-    rating: 4.8,
-    cuisine: "Italian",
-    deliveryTime: "30-45 min",
-  },
-  {
-    id: 2,
-    name: "Chicken Biryani",
-    description: "Fragrant rice dish with marinated chicken and spices",
-    price: 13.99,
-    image: "https://images.unsplash.com/photo-1631515243349-e0cb75fb8d3a?auto=format&fit=crop&w=600&h=350",
-    cook: "Raj K.",
-    rating: 4.7,
-    cuisine: "Indian",
-    deliveryTime: "35-50 min",
-  },
-  {
-    id: 3,
-    name: "Vegetable Stir Fry",
-    description: "Fresh vegetables stir-fried with homemade sauce",
-    price: 11.99,
-    image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&h=350",
-    cook: "Lee W.",
-    rating: 4.6,
-    cuisine: "Asian",
-    deliveryTime: "20-35 min",
-  },
-  {
-    id: 4,
-    name: "Beef Tacos",
-    description: "Soft shell tacos with seasoned beef and fresh toppings",
-    price: 12.99,
-    image: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=600&h=350",
-    cook: "Carlos M.",
-    rating: 4.9,
-    cuisine: "Mexican",
-    deliveryTime: "25-40 min",
-  },
-  {
-    id: 5,
-    name: "Greek Salad",
-    description: "Fresh Mediterranean salad with feta cheese and olives",
-    price: 9.99,
-    image: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=600&h=350",
-    cook: "Eleni P.",
-    rating: 4.5,
-    cuisine: "Mediterranean",
-    deliveryTime: "15-30 min",
-  },
-  {
-    id: 6,
-    name: "Pad Thai",
-    description: "Classic Thai noodle dish with vegetables and peanuts",
-    price: 14.99,
-    image: "https://images.unsplash.com/photo-1559314809-0d155014e29e?auto=format&fit=crop&w=600&h=350",
-    cook: "Suki T.",
-    rating: 4.7,
-    cuisine: "Thai",
-    deliveryTime: "30-45 min",
-  },
-  {
-    id: 7,
-    name: "Grilled Salmon",
-    description: "Fresh salmon with lemon herb butter",
-    price: 16.99,
-    image: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=600&h=350",
-    cook: "Alex J.",
-    rating: 4.8,
-    cuisine: "Seafood",
-    deliveryTime: "25-40 min",
-  },
-  {
-    id: 8,
-    name: "Mushroom Risotto",
-    description: "Creamy arborio rice with wild mushrooms",
-    price: 14.50,
-    image: "https://images.unsplash.com/photo-1476124369491-e7addf5db371?auto=format&fit=crop&w=600&h=350",
-    cook: "Sofia B.",
-    rating: 4.5,
-    cuisine: "Italian",
-    deliveryTime: "35-50 min",
-  },
-];
+
+
+
 
 const Browse = () => {
+
+  const [dishes, setDishes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+
+  useEffect(() => {
+    const fetchDishes = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/api/plats"); // adapte l’URL à ton backend
+        if (!response.ok) throw new Error("Erreur lors du chargement des plats.");
+        const data = await response.json();
+        setDishes(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDishes();
+  }, []);
+
+
+
+
+
+
   const navigate = useNavigate();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [priceRange, setPriceRange] = useState([0, 30]);
@@ -118,17 +58,23 @@ const Browse = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 3;
 
-  const filteredDishes = DISHES.filter((dish) => {
-    const matchesSearch = dish.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         dish.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         dish.cuisine.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesPrice = dish.price >= priceRange[0] && dish.price <= priceRange[1];
-    
-    const matchesCuisine = activeTab === "all" || dish.cuisine.toLowerCase() === activeTab.toLowerCase();
-    
+  const filteredDishes = dishes.filter((dish) => {
+    const name = dish.nom || '';
+    const description = dish.description || '';
+    const cuisine = dish.nom || '';
+
+    const matchesSearch =
+        name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        cuisine.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesPrice = dish.prix >= priceRange[0] && dish.prix <= priceRange[1];
+    const matchesCuisine = activeTab === "all" || cuisine.toLowerCase() === activeTab.toLowerCase();
+
     return matchesSearch && matchesPrice && matchesCuisine;
   });
+
+
 
   // Calculate pagination
   const indexOfLastDish = currentPage * itemsPerPage;
@@ -249,7 +195,7 @@ const Browse = () => {
           <>
             <div className="space-y-4">
               {currentDishes.map((dish) => (
-                <Card 
+                <Card
                   key={dish.id} 
                   className="overflow-hidden card-hover animate-fade-in cursor-pointer"
                   onClick={() => navigate(`/dish/${dish.id}`)}
@@ -258,19 +204,19 @@ const Browse = () => {
                     <div className="md:w-1/3 h-48 md:h-auto relative">
                       <img
                         src={dish.image}
-                        alt={dish.name}
+                        alt={dish.nom}
                         className="w-full h-full object-cover"
                       />
                       <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-full px-2 py-1 text-xs font-medium flex items-center">
                         <Star className="h-3 w-3 fill-primary text-primary mr-1" />
-                        {dish.rating}
+                        {dish.note}
                       </div>
                     </div>
                     <div className="flex-1 p-4 flex flex-col justify-between">
                       <div>
                         <div className="flex justify-between items-start mb-1">
-                          <h3 className="font-semibold text-lg">{dish.name}</h3>
-                          <div className="font-semibold">${dish.price.toFixed(2)}</div>
+                          <h3 className="font-semibold text-lg">{dish.nom}</h3>
+                          <div className="font-semibold">${dish.prix.toFixed(2)}</div>
                         </div>
                         <p className="text-sm text-muted-foreground mb-4">
                           {dish.description}
@@ -279,11 +225,11 @@ const Browse = () => {
                       <div className="flex items-center justify-between pt-2">
                         <div className="flex items-center text-xs text-muted-foreground">
                           <ChefHat className="h-3 w-3 mr-1" />
-                          {dish.cook}
+                          {dish.nom}
                         </div>
                         <div className="text-xs flex items-center text-muted-foreground">
                           <Clock className="h-3 w-3 mr-1" />
-                          {dish.deliveryTime}
+                          {dish.temps_preparation}
                         </div>
                       </div>
                     </div>

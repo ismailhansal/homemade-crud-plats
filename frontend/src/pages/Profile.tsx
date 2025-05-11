@@ -109,17 +109,32 @@ const Profile: React.FC = () => {
 
   const handleDishSubmit = async (formData) => {
     try {
+      // 1. Ajouter immédiatement le plat à la liste locale avant d'attendre la réponse du serveur
+      const newDish = {
+        ...formData,
+        id: Date.now(),  // Utiliser un ID temporaire si nécessaire
+      };
+
+      // Mettre à jour la liste des plats localement
+      setDishes(prevDishes => [...prevDishes, newDish]);
+
+      // 2. Envoyer la requête au serveur pour enregistrer le plat
       const response = await axios.post('http://localhost:8080/api/plats/save', formData);
       console.log('Plat créé avec succès:', response.data);
-      // Optionnel: mettre à jour une liste locale de plats
-      // setDishes([...dishes, response.data]);
-      setIsAddingDish(false); // fermer le formulaire
+
+      // 3. Si tu veux t'assurer que l'ID et les données du plat sont corrects, met à jour l'état local
+      // (par exemple, si le backend renvoie un ID généré ou modifie des données)
+      setDishes(prevDishes =>
+          prevDishes.map(dish => (dish.id === newDish.id ? response.data : dish))
+      );
+
+      setIsAddingDish(false); // Fermer le formulaire
     } catch (error) {
       console.error('Erreur lors de la création du plat:', error);
       setIsAddingDish(false);
-
     }
   };
+
 
 
   const handleDishSubmitt = async (formData: any) => {
