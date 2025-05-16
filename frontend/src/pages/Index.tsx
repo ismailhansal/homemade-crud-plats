@@ -17,9 +17,7 @@ const Index = () => {
             <Button variant="ghost" onClick={() => navigate("/login/client")}>
               Log in
             </Button>
-            <Button variant="ghost" onClick={() => navigate("/browse")}>
-              Browse Meals
-            </Button>
+
           </div>
         </header>
 

@@ -24,7 +24,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showNav = true }) => {
       {showNav && (
         <header className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b">
           <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-            <Link to="/" className="flex items-center space-x-2">
+            <Link to="/browse" className="flex items-center space-x-2">
               <span className="font-bold text-2xl">HomeMade</span>
             </Link>
 
@@ -78,6 +78,18 @@ const Layout: React.FC<LayoutProps> = ({ children, showNav = true }) => {
                 >
                   <User className="h-5 w-5" />
                 </Button>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      localStorage.removeItem("token"); // supprime ton token JWT
+                      navigate("/"); // redirige vers login
+                    }}
+                >
+                  Déconnexion
+                </Button>
+
+
               </div>
             </nav>
           </div>

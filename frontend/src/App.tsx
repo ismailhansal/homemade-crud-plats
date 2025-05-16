@@ -14,6 +14,7 @@ import Browse from "./pages/Browse";
 import DishDetail from "./pages/DishDetail";
 import Cart from "./pages/Cart";
 import OrderTracking from "./pages/OrderTracking";
+import PrivateRoute from "@/components/privateroute/PrivateRoute.tsx";
 
 const queryClient = new QueryClient();
 
@@ -29,7 +30,11 @@ const App = () => (
             <Route path="/login/:type" element={<Login />} />
             <Route path="/signup/:type" element={<Signup />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/browse" element={<Browse />} />
+            <Route path="/browse" element={
+              <PrivateRoute>
+                <Browse />
+              </PrivateRoute>
+              } />
             <Route path="/dish/:id" element={<DishDetail />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/tracking/:id" element={<OrderTracking />} />

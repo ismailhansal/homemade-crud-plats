@@ -23,8 +23,28 @@ import ChatFeature from "@/components/chat/ChatFeature";
 import axios from 'axios';                // axios pour faire des requêtes HTTP
 
 
+interface User {
+  id: string;
+  firstname: string;
+  lastname: string;
+  email: string;
+  role: string;
+  // ajoute ici les autres champs que tu attends
+}
 
 
+
+const role = localStorage.getItem("userRole");
+const isCook = role === "cook";
+console.log("role au profile : ",role);
+console.log("la variable isCook : ", isCook);
+
+//✅ Ce que fait cette ligne :
+// Elle compare la variable role à la chaîne de caractères "COOK".
+//
+// Si role est exactement égal à "COOK" → alors isCook sera true.
+//
+// Sinon → isCook sera false.
 
 
 // Sample dish data
@@ -105,6 +125,44 @@ const SAMPLE_ORDERS = [
 
 
 const Profile: React.FC = () => {
+
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setError("Utilisateur non authentifié");
+          setLoading(false);
+          return;
+        }
+
+        const response = await fetch("http://localhost:8080/api/user", {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`, // envoi du token au backend
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Erreur lors de la récupération des données utilisateur");
+        }
+
+        const data = await response.json();
+        setUser(data);
+      } catch (err: any) {
+        setError(err.message || "Erreur inconnue");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
 
 
   const handleDishSubmit = async (formData) => {
@@ -214,7 +272,6 @@ const Profile: React.FC = () => {
   const [editingDish, setEditingDish] = useState(null);
   const [isAddingDish, setIsAddingDish] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const isCook = true; // This would be determined by auth state in a real app
 
   // Pagination states
   const [currentDishPage, setCurrentDishPage] = useState(1);

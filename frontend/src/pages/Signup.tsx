@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,16 +8,73 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Layout from "@/components/layout/Layout";
 import { ChefHat, ShoppingBag } from "lucide-react";
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 const Signup = () => {
+
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    cuisine: "",
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+
+
   const { type } = useParams<{ type: string }>();
   const navigate = useNavigate();
   const isCook = type === "cook";
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, we would register the user here
-    navigate(isCook ? "/profile" : "/browse");
+
+
+    const payload = {
+      ...formData,
+      //envoyer le role correspondant
+      role: isCook ? "COOK" : "CLIENT",
+
+    };
+    //pour enregistrer le role dans le front
+    localStorage.setItem("userRole", payload.role);
+
+    console.log("Payload envoyé :", payload); // ← LOG ICI
+
+    try {
+      const res = await fetch("http://localhost:8080/auth/signup/client", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+
+      });
+
+      if (res.ok) {
+        alert("Account created successfully!");
+        navigate(isCook ? "/profile" : "/browse");
+      } else {
+        alert("Failed to register");
+      }
+    } catch (err) {
+      console.error("Error during registration", err);
+      alert("Server error");
+    }
   };
+
 
   const userTypeIcon = isCook ? (
     <ChefHat className="h-6 w-6" />
@@ -55,6 +112,8 @@ const Signup = () => {
                     <Input
                       id="firstName"
                       placeholder="John"
+                      value={formData.firstName}
+                      onChange={handleChange}
                       required
                       className="transition-all duration-200 focus:ring-2 focus:ring-primary"
                     />
@@ -64,6 +123,8 @@ const Signup = () => {
                     <Input
                       id="lastName"
                       placeholder="Doe"
+                      value={formData.lastName}
+                      onChange={handleChange}
                       required
                       className="transition-all duration-200 focus:ring-2 focus:ring-primary"
                     />
@@ -74,6 +135,8 @@ const Signup = () => {
                   <Input
                     id="email"
                     placeholder="name@example.com"
+                    value={formData.email}
+                    onChange={handleChange}
                     required
                     type="email"
                     className="transition-all duration-200 focus:ring-2 focus:ring-primary"
@@ -83,6 +146,8 @@ const Signup = () => {
                   <Label htmlFor="password">Password</Label>
                   <Input
                     id="password"
+                    value={formData.password}
+                    onChange={handleChange}
                     required
                     type="password"
                     className="transition-all duration-200 focus:ring-2 focus:ring-primary"
