@@ -75,4 +75,10 @@ public class AuthenticationService {
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
     }
+
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+
 }

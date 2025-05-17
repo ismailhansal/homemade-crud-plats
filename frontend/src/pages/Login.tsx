@@ -50,7 +50,6 @@ const Login = () => {
       // Redirection selon rôle
       navigate(isCook ? "/profile" : "/browse");
       window.location.reload();
-
     } catch (err: any) {
       setError(err.message || "Login failed");
     }

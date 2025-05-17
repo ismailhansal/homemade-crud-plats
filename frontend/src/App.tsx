@@ -29,14 +29,39 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login/:type" element={<Login />} />
             <Route path="/signup/:type" element={<Signup />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route path="/profile" element={
+
+
+              <PrivateRoute>
+              <Profile/>
+              </PrivateRoute>
+
+
+
+              } />
             <Route path="/browse" element={
               <PrivateRoute>
                 <Browse />
               </PrivateRoute>
               } />
-            <Route path="/dish/:id" element={<DishDetail />} />
-            <Route path="/cart" element={<Cart />} />
+            <Route path="/dish/:id" element={
+
+
+              <PrivateRoute>
+              <DishDetail />
+              </PrivateRoute>
+
+
+
+
+            } />
+            <Route path="/cart" element={
+
+              <PrivateRoute>
+              <Cart />
+              </PrivateRoute>
+
+            } />
             <Route path="/tracking/:id" element={<OrderTracking />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

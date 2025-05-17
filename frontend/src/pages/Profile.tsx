@@ -140,7 +140,7 @@ const Profile: React.FC = () => {
           return;
         }
 
-        const response = await fetch("http://localhost:8080/api/user", {
+        const response = await fetch("http://localhost:8080/auth/me", {
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`, // envoi du token au backend
@@ -149,9 +149,11 @@ const Profile: React.FC = () => {
 
         if (!response.ok) {
           throw new Error("Erreur lors de la récupération des données utilisateur");
+          console.log("erreur");
         }
-
         const data = await response.json();
+        console.log(data);
+
         setUser(data);
       } catch (err: any) {
         setError(err.message || "Erreur inconnue");
@@ -390,6 +392,7 @@ const Profile: React.FC = () => {
                                 defaultValue="Jane"
                                 readOnly={!isEditing}
                                 className={isEditing ? "" : "bg-muted"}
+                                //value={user.firstname}
                             />
                           </div>
                           <div className="space-y-2">

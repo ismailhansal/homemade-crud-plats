@@ -18,6 +18,10 @@ public class User {
     private String role;
     private String cuisine;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "cart_id")  // clé étrangère dans User vers Cart
+    private Cart cart;
+
     // Getter, setter et constructeur
     public User() {}
 
@@ -90,4 +94,11 @@ public class User {
     }
 
 
+    public Cart getCart() {
+        return cart;
+    }
+
+    public void setCart(Cart cart) {
+        this.cart = cart;
+    }
 }
