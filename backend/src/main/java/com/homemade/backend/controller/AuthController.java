@@ -3,6 +3,7 @@ package com.homemade.backend.controller;
 import com.homemade.backend.dto.AuthResponse;
 import com.homemade.backend.dto.LoginRequest;
 import com.homemade.backend.dto.RegisterRequest;
+import com.homemade.backend.dto.UpdateUserRequest;
 import com.homemade.backend.entite.User;
 import com.homemade.backend.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +66,25 @@ public class AuthController {
 
         return ResponseEntity.ok(user);
     }
+
+    @PutMapping("/me")
+    public ResponseEntity<User> updateUser(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody UpdateUserRequest request) {
+
+        if (userDetails == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        String email = userDetails.getUsername();
+        try {
+            User updatedUser = authenticationService.updateUserInfo(email, request);
+            return ResponseEntity.ok(updatedUser);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
 
 
 }

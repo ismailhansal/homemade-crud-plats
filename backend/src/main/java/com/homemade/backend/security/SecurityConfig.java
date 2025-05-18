@@ -32,7 +32,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/register","/login", "/auth/**","auth/me","/api/plats/**").permitAll()
+                        .requestMatchers("/register","/login", "/auth/**","/auth/me","/api/plats/**").permitAll()
                         .anyRequest().authenticated()
 
                 )
@@ -50,12 +50,4 @@ public class SecurityConfig {
     }
 
 
-    @Bean
-    public InMemoryUserDetailsManager userDetailsService() {
-        UserDetails user = User.withUsername("user")
-                .password(passwordEncoder().encode("password"))
-                .roles("USER")
-                .build();
-        return new InMemoryUserDetailsManager(user);
-    }
 }

@@ -27,24 +27,32 @@ interface User {
   id: string;
   firstname: string;
   lastname: string;
+  phoneNumber : string;
   email: string;
-  role: string;
+  address: string;
+  roles: string[];
   // ajoute ici les autres champs que tu attends
+}
+
+interface Dish{
+  id: number;
+  name : string;
+  price : number;
+  description? : string;
+  image_url? : string;
+  prep_time? : number;
+  cuisine? : string;
+  serving? : number;
 }
 
 
 
-const role = localStorage.getItem("userRole");
-const isCook = role === "cook";
-console.log("role au profile : ",role);
-console.log("la variable isCook : ", isCook);
 
-//✅ Ce que fait cette ligne :
-// Elle compare la variable role à la chaîne de caractères "COOK".
-//
-// Si role est exactement égal à "COOK" → alors isCook sera true.
-//
-// Sinon → isCook sera false.
+
+const role = localStorage.getItem("userRole");
+
+console.log("role au profile : ",role);
+
 
 
 // Sample dish data
@@ -129,6 +137,7 @@ const Profile: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const isCook = user?.roles?.includes("COOK");
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -225,8 +234,54 @@ const Profile: React.FC = () => {
     }
   };
 
+  const handleProfileUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:8080/auth/me", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la mise à jour du profil");
+      }
+
+      const updatedUser = await response.json();
+      setUser(updatedUser);
+      setIsEditing(false);
+      console.log("Profil mis à jour :", updatedUser);
+    } catch (error) {
+      console.error("Erreur pendant la mise à jour du profil :", error);
+    }
+  };
 
 
+
+const [formData, setFormData] = useState({
+  firstname: "",
+  lastname: "",
+  email: "",
+  address: "",
+  phoneNumber : "",
+
+});
+
+  useEffect(() => {
+    if(user){
+      setFormData({
+        firstname: user.firstname || "",
+        lastname: user.lastname || "",
+        email: user.email || "",
+        address: user.address || "",
+        phoneNumber : user.phoneNumber || "",
+      })
+    }
+  }, [user]);
 
 
 
@@ -235,7 +290,7 @@ const Profile: React.FC = () => {
 
 
   //new
-  const [dishes, setDishes] = useState<any[]>([]); // Créer un état pour stocker les plats
+  const [dishes, setDishes] = useState<Dish[]>([]); // Créer un état pour stocker les plats
 
   // Utilisation de useEffect pour récupérer les plats à chaque fois que le composant est monté
   useEffect(() => {
@@ -283,8 +338,8 @@ const Profile: React.FC = () => {
   // Calculate pagination for dishes
   const indexOfLastDish = currentDishPage * itemsPerPage;
   const indexOfFirstDish = indexOfLastDish - itemsPerPage;
-  const currentDishes = SAMPLE_DISHES.slice(indexOfFirstDish, indexOfLastDish);
-  const totalDishPages = Math.ceil(SAMPLE_DISHES.length / itemsPerPage);
+  const currentDishes = dishes.slice(indexOfFirstDish, indexOfLastDish);
+  const totalDishPages = Math.ceil(dishes.length / itemsPerPage);
 
   // Calculate pagination for orders
   const indexOfLastOrder = currentOrderPage * itemsPerPage;
@@ -330,9 +385,11 @@ const Profile: React.FC = () => {
                       </AvatarFallback>
                     </Avatar>
                   </div>
-                  <CardTitle>Jane Smith</CardTitle>
+                  <CardTitle>
+                    {user ? `${user.firstname} ${user.lastname}` : "Loading..."}
+                  </CardTitle>
                   <CardDescription>
-                    {isCook ? "Home Cook" : "Food Enthusiast"}
+                    {user ? (isCook ? "Home Cook" : "Food Enthusiast") : ""}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
@@ -383,13 +440,14 @@ const Profile: React.FC = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <form className="space-y-4">
+                      <form className="space-y-4" onSubmit={handleProfileUpdate}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="firstName">First Name</Label>
                             <Input
                                 id="firstName"
-                                defaultValue="Jane"
+                                defaultValue={user?.firstname || ""}
+                                onChange={(e) => setFormData({ ...formData, firstname: e.target.value })}
                                 readOnly={!isEditing}
                                 className={isEditing ? "" : "bg-muted"}
                                 //value={user.firstname}
@@ -399,7 +457,8 @@ const Profile: React.FC = () => {
                             <Label htmlFor="lastName">Last Name</Label>
                             <Input
                                 id="lastName"
-                                defaultValue="Smith"
+                                defaultValue={user?.lastname || ""}
+                                onChange={(e) => setFormData({ ...formData, lastname: e.target.value })}
                                 readOnly={!isEditing}
                                 className={isEditing ? "" : "bg-muted"}
                             />
@@ -410,7 +469,8 @@ const Profile: React.FC = () => {
                           <Input
                               id="email"
                               type="email"
-                              defaultValue="jane.smith@example.com"
+                              defaultValue={user?.email || ""}
+                              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                               readOnly={!isEditing}
                               className={isEditing ? "" : "bg-muted"}
                           />
@@ -420,7 +480,8 @@ const Profile: React.FC = () => {
                           <Input
                               id="phone"
                               type="tel"
-                              defaultValue="+1 (555) 123-4567"
+                              defaultValue={user?.phoneNumber || ""}
+                              onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
                               readOnly={!isEditing}
                               className={isEditing ? "" : "bg-muted"}
                           />
@@ -429,7 +490,8 @@ const Profile: React.FC = () => {
                           <Label htmlFor="address">Address</Label>
                           <Input
                               id="address"
-                              defaultValue="123 Main St, Anytown, USA"
+                              defaultValue={user?.address || ""}
+                              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                               readOnly={!isEditing}
                               className={isEditing ? "" : "bg-muted"}
                           />

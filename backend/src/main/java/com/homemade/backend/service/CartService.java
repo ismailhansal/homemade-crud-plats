@@ -55,7 +55,7 @@ public class CartService {
 
         // Recherche si le plat est déjà dans le panier
         Optional<CartItem> existingCartItemOpt = cart.getItems().stream()
-                .filter(item -> item.getPlat().getId().equals(platId))
+                .filter(item -> item.getPlat().getId() == platId)
                 .findFirst();
 
         if (existingCartItemOpt.isPresent()) {
@@ -99,7 +99,7 @@ public class CartService {
     @Transactional
     public void removePlatFromCart(Long userId, Long platId) {
         Cart cart = getCartByUserId(userId);
-        cart.getItems().removeIf(item -> item.getPlat().getId().equals(platId));
+        cart.getItems().removeIf(item -> item.getPlat().getId()==platId);
         cartRepository.save(cart);
     }
 

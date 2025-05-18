@@ -1,8 +1,13 @@
 package com.homemade.backend.service;
 
+import com.homemade.backend.dao.ClientProfileRepository;
 import com.homemade.backend.dao.UserRepository;
 import com.homemade.backend.dto.RegisterRequest;
+import com.homemade.backend.dto.UpdateUserRequest;
+import com.homemade.backend.entite.ClientProfile;
+import com.homemade.backend.entite.CookProfile;
 import com.homemade.backend.entite.User;
+import com.homemade.backend.enums.Role;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -17,7 +22,7 @@ import java.util.Date;
 @Service
 public class AuthenticationService {
 
-    private static final String SECRET = "uneCléTrèsLongueTrèsSûreQuiFaitPlusDe64CaractèresPourHS512!!!!1234567890";
+    private static final String SECRET = "P0$Tg1WlP9xZ@c2kY7R#z!qL8uDf6AhTP0$Tg1WlP9xZ@c2kY7R#z14785236951";
 
     @Autowired
     private UserRepository userRepository;
@@ -25,6 +30,8 @@ public class AuthenticationService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private ClientProfileRepository clientProfileRepository;
 
     public void registerUser(RegisterRequest request) {
         User user = new User();
@@ -32,10 +39,26 @@ public class AuthenticationService {
         user.setLastname(request.getLastName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setCuisine(request.getCuisine());
-        user.setRole(request.getRole());
+        user.setUsername(request.getEmail());
+        user.getRoles().add(Role.CLIENT);
+
+        if("COOK".equalsIgnoreCase(request.getRole())){
+            user.addRole(Role.COOK);
+            CookProfile cookProfile = new CookProfile();
+            cookProfile.setUser(user);
+            cookProfile.setCookAddress("To be Updated");
+            cookProfile.setSpecialty(request.getCuisine());
+            user.setCookProfile(cookProfile);
+        }
+        ClientProfile clientProfile = new ClientProfile();
+        clientProfile.setUser(user);
+        clientProfile.setAdresseClient("To be Updated");
+        user.setClientProfile(clientProfile);
 
         userRepository.save(user);
+
+        //user.setCuisine(request.getCuisine());
+        //user.setRole(request.getRole());
     }
 
 
@@ -76,8 +99,29 @@ public class AuthenticationService {
                 .compact();
     }
 
+
+
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    public User updateUserInfo(String email, UpdateUserRequest request) {
+        User user = getUserByEmail(email);
+        if(user == null){
+            throw new RuntimeException("User Not Found");
+        }
+
+        user.setFirstname(request.getFirstname());
+        user.setLastname(request.getLastname());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setEmail(request.getEmail());
+
+        ClientProfile clientProfile = user.getClientProfile();
+        if(clientProfile != null){
+            clientProfile.setAdresseClient(request.getAddress());
+        }
+
+        return userRepository.save(user);
     }
 
 

@@ -12,7 +12,7 @@ public class Cart {
     private Long id;
 
     @OneToOne(mappedBy = "cart")
-    private User user;
+    private ClientProfile clientProfile;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> items = new ArrayList<>();

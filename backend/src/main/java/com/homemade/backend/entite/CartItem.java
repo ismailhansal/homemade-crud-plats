@@ -13,11 +13,15 @@ public class CartItem {
     @JoinColumn(name = "cart_id")
     private Cart cart;
 
-    public Cart getPlat() {
-        return cart;
+    @ManyToOne
+    @JoinColumn(name = "plat_id")
+    private Plats plat;
+
+    public Plats getPlat() {
+        return plat;
     }
     public void setPlat(Plats plat) {
-        this.cart = plat;
+        this.plat = plat;
     }
 
     public Long getId() {
@@ -43,5 +47,5 @@ public class CartItem {
     public void setCart(Cart cart) {
         this.cart = cart;
     }
-// getters, setters
+
 }
