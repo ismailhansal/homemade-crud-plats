@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -25,8 +24,10 @@ import {
   MessageSquare,
   Users,
   Info,
-  MapPin
+  MapPin,
+  Loader2
 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 interface Plat {
   id: number;
@@ -106,50 +107,37 @@ const getDishById = (id: string) => {
         { id: 3, user: "Mike R.", avatar: "", rating: 5, comment: "Absolutely delicious. Will order again!", date: "2 weeks ago" },
       ],
     },
-    // More dishes would be added here
   ];
 
   return dishes.find(dish => dish.id === parseInt(id)) || dishes[0];
 };
 
 const DishDetail = () => {
-
-
-  // Récupère l'ID depuis l'URL via useParams
   const { id } = useParams<{ id: string }>();
-
-  // State pour stocker les données du plat récupéré
+  const navigate = useNavigate();
   const [plat, setPlat] = useState<Plat | null>(null);
+  const [quantity, setQuantity] = useState(1);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const dish = getDishById(id || "1");
 
-  // Affiche l'ID récupéré dans la console pour vérification
-  useEffect(() => {
-    console.log("ID récupéré depuis l'URL :", id);
-  }, [id]);
-
-  // Lors du montage du composant ou lorsque l'ID change, récupère les données du plat
   useEffect(() => {
     if (!id) return;
 
     fetch(`http://localhost:8080/api/plats/${id}`)
         .then(res => {
-          if (!res.ok) throw new Error("Erreur lors de la récupération du plat");
+          if (!res.ok) throw new Error("Failed to fetch dish");
           return res.json();
         })
-        .then(data => setPlat(data)) // Stocke les données dans le state
-        .catch(error => console.error('Erreur lors du fetch :', error)); // Log les erreurs
+        .then(data => setPlat(data))
+        .catch(error => {
+          console.error('Fetch error:', error);
+          toast({
+            title: "Error loading dish",
+            description: error.message,
+            variant: "destructive"
+          });
+        });
   }, [id]);
-  console.log("les infos de variable plat",plat);
-
-
-  // Affiche un message de chargement pendant la récupération
-
-
-
-
-
-  const navigate = useNavigate();
-  const dish = getDishById(id || "1");
-  const [quantity, setQuantity] = useState(1);
 
   const decreaseQuantity = () => {
     if (quantity > 1) setQuantity(quantity - 1);
@@ -159,12 +147,61 @@ const DishDetail = () => {
     setQuantity(quantity + 1);
   };
 
+  const addToCart = async () => {
+    if (!plat) return;
 
-  //indispensable sinn page blanche
+    setIsAddingToCart(true);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast({
+          title: "Authentication required",
+          description: "Please login to add items to cart",
+          variant: "destructive",
+          action: (
+              <Button onClick={() => navigate("/login")}>Login</Button>
+          )
+        });
+        return;
+      }
+
+      const response = await fetch(
+          `http://localhost:8080/api/cart/add?platId=${plat.id}&quantity=${quantity}`,
+          {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json"
+            }
+          }
+      );
+
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+
+      toast({
+        title: "Added to cart!",
+        description: `${quantity} x ${plat.nom} added to your cart`,
+        action: (
+            <Button onClick={() => navigate("/cart")}>View Cart</Button>
+        )
+      });
+    } catch (error) {
+      console.error("Add to cart error:", error);
+      toast({
+        title: "Failed to add to cart",
+        description: error instanceof Error ? error.message : "Please try again",
+        variant: "destructive"
+      });
+    } finally {
+      setIsAddingToCart(false);
+    }
+  };
+
   if (!plat) {
-    return <p>Chargement en cours...</p>;
+    return <div className="container mx-auto px-4 py-8">Loading...</div>;
   }
-
 
   return (
       <Layout>
@@ -265,7 +302,7 @@ const DishDetail = () => {
                     <h3 className="text-xl font-semibold mb-4">More from {dish.cook.name}</h3>
                     <Carousel className="w-full">
                       <CarouselContent>
-                      {dish.cook.otherDishes.map((otherDish) => (
+                        {dish.cook.otherDishes.map((otherDish) => (
                             <CarouselItem key={otherDish.id} className="md:basis-1/3">
                               <Card className="card-hover">
                                 <CardContent className="p-0">
@@ -414,7 +451,15 @@ const DishDetail = () => {
                   </div>
 
                   <div className="pt-6 space-y-4">
-                    <Button className="w-full" size="lg">
+                    <Button
+                        className="w-full"
+                        size="lg"
+                        onClick={addToCart}
+                        disabled={isAddingToCart}
+                    >
+                      {isAddingToCart ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : null}
                       Add to Cart - ${(plat.prix * quantity).toFixed(2)}
                     </Button>
                     <Button variant="outline" className="w-full" size="lg">

@@ -20,6 +20,20 @@ import { Search, Filter, Star, ChefHat, Clock } from "lucide-react";
 
 
 
+interface Dish {
+  id: number;
+  nom: string;
+  prix: number;
+  description?: string;
+  image?: string;
+  note?: number;
+  temps_preparation?: number;
+  type_cuisine?: string;
+  nombre_personnes?: number;
+  ingredients?: string;
+  allergies?: string;
+  cookName?: string;
+}
 
 const Browse = () => {
 
@@ -31,7 +45,7 @@ const Browse = () => {
   useEffect(() => {
     const fetchDishes = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/plats"); // adapte l’URL à ton backend
+        const response = await fetch("http://localhost:8080/api/plats");
         if (!response.ok) throw new Error("Erreur lors du chargement des plats.");
         const data = await response.json();
         setDishes(data);
@@ -195,46 +209,52 @@ const Browse = () => {
           <>
             <div className="space-y-4">
               {currentDishes.map((dish) => (
-                <Card
-                  key={dish.id} 
-                  className="overflow-hidden card-hover animate-fade-in cursor-pointer"
-                  onClick={() => navigate(`/dish/${dish.id}`)}
-                >
-                  <div className="flex flex-col md:flex-row">
-                    <div className="md:w-1/3 h-48 md:h-auto relative">
-                      <img
-                        src={dish.image}
-                        alt={dish.nom}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-full px-2 py-1 text-xs font-medium flex items-center">
-                        <Star className="h-3 w-3 fill-primary text-primary mr-1" />
-                        {dish.note}
+                  <Card
+                      key={dish.id}
+                      className="overflow-hidden card-hover animate-fade-in cursor-pointer"
+                      onClick={() => navigate(`/dish/${dish.id}`)}
+                  >
+                    <div className="flex flex-col md:flex-row">
+                      <div className="md:w-1/3 h-48 md:h-auto relative">
+                        <img
+                            src={dish.image || '/placeholder.jpg'}
+                            alt={dish.nom}
+                            className="w-full h-full object-cover"
+                        />
+                        {dish.note && (
+                            <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-full px-2 py-1 text-xs font-medium flex items-center">
+                              <Star className="h-3 w-3 fill-primary text-primary mr-1" />
+                              {dish.note}
+                            </div>
+                        )}
+                      </div>
+                      <div className="flex-1 p-4 flex flex-col justify-between">
+                        <div>
+                          <div className="flex justify-between items-start mb-1">
+                            <h3 className="font-semibold text-lg">{dish.nom}</h3>
+                            <div className="font-semibold">${dish.prix?.toFixed(2)}</div>
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                            {dish.description}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between pt-2">
+                          {dish.cookName && (
+                              <div className="flex items-center text-xs text-muted-foreground">
+                                <ChefHat className="h-3 w-3 mr-1" />
+                                {dish.cookName}
+                              </div>
+                          )}
+                          {dish.temps_preparation && (
+                              <div className="text-xs flex items-center text-muted-foreground">
+                                <Clock className="h-3 w-3 mr-1" />
+                                {dish.temps_preparation} min
+                              </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <div className="flex-1 p-4 flex flex-col justify-between">
-                      <div>
-                        <div className="flex justify-between items-start mb-1">
-                          <h3 className="font-semibold text-lg">{dish.nom}</h3>
-                          <div className="font-semibold">${dish.prix.toFixed(2)}</div>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          {dish.description}
-                        </p>
-                      </div>
-                      <div className="flex items-center justify-between pt-2">
-                        <div className="flex items-center text-xs text-muted-foreground">
-                          <ChefHat className="h-3 w-3 mr-1" />
-                          {dish.nom}
-                        </div>
-                        <div className="text-xs flex items-center text-muted-foreground">
-                          <Clock className="h-3 w-3 mr-1" />
-                          {dish.temps_preparation}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
+                  </Card>
               ))}
             </div>
             

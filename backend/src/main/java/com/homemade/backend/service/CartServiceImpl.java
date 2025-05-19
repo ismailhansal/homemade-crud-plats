@@ -4,10 +4,7 @@ import com.homemade.backend.dao.CartItemRepository;
 import com.homemade.backend.dao.CartRepository;
 import com.homemade.backend.dao.PlatsRepository;
 import com.homemade.backend.dao.UserRepository;
-import com.homemade.backend.entite.Cart;
-import com.homemade.backend.entite.CartItem;
-import com.homemade.backend.entite.Plats;
-import com.homemade.backend.entite.User;
+import com.homemade.backend.entite.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -34,13 +31,25 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public Cart getActiveCart(Long userId) {
-        Cart cart = cartRepository.findCartByClientProfile(userRepository.findById(userId).get().getClientProfile());
-        if(cart == null) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Ensure client profile exists
+        if (user.getClientProfile() == null) {
+            throw new RuntimeException("User is not a client");
+        }
+
+        ClientProfile clientProfile = user.getClientProfile();
+
+        // Return existing cart or create new one
+        if (clientProfile.getCart() == null) {
             Cart newCart = new Cart();
-            newCart.setClientProfile(userRepository.findById(userId).get().getClientProfile());
+            newCart.setClientProfile(clientProfile);
+            clientProfile.setCart(newCart);
             return cartRepository.save(newCart);
         }
-        return cart;
+
+        return clientProfile.getCart();
     }
 
     @Override

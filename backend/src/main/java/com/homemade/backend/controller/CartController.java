@@ -13,7 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/cart")
@@ -33,21 +35,55 @@ public class CartController {
         this.userService = userService;
     }
 
+    @GetMapping("/items")
     public ResponseEntity<List<CartItemDto>> getCartItems(Principal principal) {
+        // 1. Vérifiez l'authentification
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // 2. Vérifiez l'utilisateur
         User user = userService.getUserByUsername(principal.getName());
-        Cart cart = cartService.getCartByUserId(user.getId());
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
 
-        List<CartItemDto> cartItems = cart.getItems().stream().map(item -> new CartItemDto(
-                item.getPlat().getId(),
-                item.getPlat().getNom(),
-                item.getPlat().getPrix(),
-                item.getQuantity(),
-                item.getPlat().getImage(),
-                item.getPlat().getCook().getUser().getFullName()
-        )).toList();
+        if (user.getClientProfile() == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Collections.emptyList());
+        }
 
-        return ResponseEntity.ok(cartItems);
+        Cart cart = cartService.getActiveCart(user.getId());
 
+        // 3. Vérifiez le panier
+        if (cart == null) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+
+        // 4. Loggez les items
+        cart.getItems().forEach(item -> {
+            System.out.println("Item ID: " + item.getId() +
+                    ", Plat ID: " + item.getPlat().getId() +
+                    ", Quantity: " + item.getQuantity());
+        });
+
+        // 5. Transformez en DTO
+        List<CartItemDto> dtos = cart.getItems().stream()
+                .map(item -> {
+                    CartItemDto dto = new CartItemDto(
+                            item.getPlat().getId(),
+                            item.getPlat().getNom(),
+                            item.getPlat().getPrix(),
+                            item.getQuantity(),
+                            item.getPlat().getImage(),
+                            item.getPlat().getCook() != null ?
+                                    item.getPlat().getCook().getUser().getFullName() : "Unknown"
+                    );
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);
     }
 
     /**
@@ -56,41 +92,51 @@ public class CartController {
      */
     @PostMapping("/add")
     public ResponseEntity<Cart> addToCart(
-            @RequestParam Long userId,
+            Principal principal,
             @RequestParam Long platId,
             @RequestParam(defaultValue = "1") int quantity
     ) {
-        Cart updatedCart = cartService.addToCart(userId, platId, quantity);
+        User user = userService.getUserByUsername(principal.getName());
+        Cart updatedCart = cartService.addToCart(user.getId(), platId, quantity);
         return ResponseEntity.ok(updatedCart);
     }
 
     /**
      * Récupérer le panier d’un utilisateur.
      */
-    @GetMapping("/{userId}")
-    public ResponseEntity<Cart> getCartByUserId(@PathVariable Long userId) {
-        Cart cart = cartService.getCartByUserId(userId);
+    @GetMapping("/")
+    public ResponseEntity<Cart> getCartByUserId(Principal principal) {
+        User user = userService.getUserByUsername(principal.getName());
+        Cart cart = cartService.getCartByUserId(user.getId());
         return ResponseEntity.ok(cart);
     }
 
+    @PostMapping("/decrease")
+    public ResponseEntity<String> decreaseItem(Principal principal, @RequestParam Long platId) {
+        User user = userService.getUserByUsername(principal.getName());
+        cartService.decreasePlatFromCart(user.getId(), platId);
+        return ResponseEntity.ok("Decreased plat from cart.");
+    }
     /**
      * Supprimer un plat du panier.
      */
     @DeleteMapping("/remove")
     public ResponseEntity<String> removeFromCart(
-            @RequestParam Long userId,
+            Principal principal,
             @RequestParam Long platId
     ) {
-        cartService.removePlatFromCart(userId, platId);
+        User user = userService.getUserByUsername(principal.getName());
+        cartService.removePlatFromCart(user.getId(), platId);
         return ResponseEntity.ok("Plat supprimé du panier.");
     }
 
     /**
      * Vider le panier.
      */
-    @DeleteMapping("/clear/{userId}")
-    public ResponseEntity<String> clearCart(@PathVariable Long userId) {
-        cartService.clearCart(userId);
+    @DeleteMapping("/clear")
+    public ResponseEntity<String> clearCart(Principal principal) {
+        User user = userService.getUserByUsername(principal.getName());
+        cartService.clearCart(user.getId());
         return ResponseEntity.ok("Panier vidé.");
     }
 }

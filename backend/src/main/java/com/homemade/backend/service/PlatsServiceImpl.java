@@ -1,69 +1,125 @@
 package com.homemade.backend.service;
 
 import com.homemade.backend.dao.PlatsRepository;
+import com.homemade.backend.dao.UserRepository;
+import com.homemade.backend.dto.PlatsDto;
+import com.homemade.backend.entite.CookProfile;
 import com.homemade.backend.entite.Plats;
+import com.homemade.backend.entite.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PlatsServiceImpl implements PlatsService{
 
     private final PlatsRepository platsRepository;
+    private final UserRepository userRepository;
 
 
     @Autowired
-    public PlatsServiceImpl(PlatsRepository platsrepository) {
-            this.platsRepository = platsrepository;
+    public PlatsServiceImpl(PlatsRepository platsrepository, UserRepository userRepository) {
+
+        this.platsRepository = platsrepository;
+        this.userRepository = userRepository;
     }
 
-    // Récupérer tous les clients
-    public List<Plats> getAllPlats() {
-        return (List<Plats>) platsRepository.findAll();
-    }
-
-
-    // Créer un nouveau client
-    public Plats createPlat(Plats p) {
-        return platsRepository.save(p);
-    }
-
-
-    //recuperer un client pour le modifier
     @Override
-    public Plats getPlatById(Long id) {
-        return platsRepository.findById(id).orElse(null);
+    public List<PlatsDto> getAllPlatsDto() {
+        List<Plats> plats = (List<Plats>) platsRepository.findAll();
+        return plats.stream().map(this::convertToDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public PlatsDto createPlat(PlatsDto platsDto, Principal principal) {
+        String username = principal.getName();
+        CookProfile cookProfile = getCookProfileByUsername(username);
+        if(cookProfile == null) {
+            throw new RuntimeException("User not found");
+        }
+        Plats plat = convertToEntity(platsDto);
+        plat.setCook(cookProfile);
+        Plats savedPlat = platsRepository.save(plat);
+        return convertToDto(savedPlat);
+    }
+
+
+
+    @Override
+    public PlatsDto getPlatDtoById(Long id) {
+        Plats plat = platsRepository.findById(id).orElse(null);
+        return plat != null ? convertToDto(plat) : null;
     }
 
     //modifier un client
     @Override
-    public Plats modifierPlat(Plats p) {
+    public PlatsDto modifierPlat(PlatsDto platDto, Long id) {
         // On récupère l'ancien plat dans la base de données
-        Plats oldPlat = platsRepository.findById(p.getId())
-                .orElseThrow(() -> new RuntimeException("Plat non trouvé avec l'ID : " + p.getId()));
+        Plats existingPlat = platsRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Plat not found with id: " + id));
 
-        // Ici, on met à jour oldPlat avec les nouvelles valeurs venant de p
-        oldPlat.setNom(p.getNom());
-        oldPlat.setDescription(p.getDescription());
-        oldPlat.setPrix(p.getPrix());
-        oldPlat.setImage(p.getImage());
-        oldPlat.setNote(p.getNote());
-        oldPlat.setTemps_preparation(p.getTemps_preparation());
-        oldPlat.setType_cuisine(p.getType_cuisine());
-        oldPlat.setNombre_personnes(p.getNombre_personnes());
-        oldPlat.setIngredients(p.getIngredients());
-        oldPlat.setAllergies(p.getAllergies());
+        // Update fields from DTO
+        existingPlat.setNom(platDto.getNom());
+        existingPlat.setDescription(platDto.getDescription());
+        existingPlat.setPrix(platDto.getPrix());
+        existingPlat.setImage(platDto.getImage());
+        existingPlat.setNote(platDto.getNote());
+        existingPlat.setTemps_preparation(platDto.getTemps_preparation());
+        existingPlat.setType_cuisine(platDto.getType_cuisine());
+        existingPlat.setNombre_personnes(platDto.getNombre_personnes());
+        existingPlat.setIngredients(platDto.getIngredients());
+        existingPlat.setAllergies(platDto.getAllergies());
 
-        // On retourne oldPlat qui sera mis à jour dans la base de données
-        return platsRepository.save(oldPlat);  // Ce n'est pas p, c'est oldPlat ici, car c'est l'entité modifiée
+        Plats updatedPlat = platsRepository.save(existingPlat);
+        return convertToDto(updatedPlat);
     }
 
-    // Supprimer un client
 
     @Override
-    public void supprimerPlat(Plats p) {
-        platsRepository.delete(p);
+    public void supprimerPlat(Long id) {
+        platsRepository.deleteById(id);
+    }
+
+    @Override
+    public CookProfile getCookProfileByUsername(String username){
+        User user = userRepository.findByEmail(username);
+        return user != null ? user.getCookProfile() : null;
+    };
+
+    private PlatsDto convertToDto(Plats plat) {
+        return new PlatsDto(
+                plat.getId(),
+                plat.getNom(),
+                plat.getDescription(),
+                plat.getPrix(),
+                plat.getImage(),
+                plat.getNote(),
+                plat.getTemps_preparation(),
+                plat.getType_cuisine(),
+                plat.getNombre_personnes(),
+                plat.getIngredients(),
+                plat.getAllergies(),
+                plat.getCook() != null ? plat.getCook().getUser().getFullName() : null
+        );
+    }
+
+    private Plats convertToEntity(PlatsDto platDto) {
+        Plats plat = new Plats();
+        plat.setId(platDto.getId());
+        plat.setNom(platDto.getNom());
+        plat.setDescription(platDto.getDescription());
+        plat.setPrix(platDto.getPrix());
+        plat.setImage(platDto.getImage());
+        plat.setNote(platDto.getNote());
+        plat.setTemps_preparation(platDto.getTemps_preparation());
+        plat.setType_cuisine(platDto.getType_cuisine());
+        plat.setNombre_personnes(platDto.getNombre_personnes());
+        plat.setIngredients(platDto.getIngredients());
+        plat.setAllergies(platDto.getAllergies());
+        return plat;
     }
 
 

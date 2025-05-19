@@ -1,11 +1,6 @@
-package com.homemade.backend.entite;
+package com.homemade.backend.dto;
 
-import jakarta.persistence.*;
-
-@Entity
-public class Plats {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class PlatsDto {
     private long id;
     private String nom;
     private String description;
@@ -18,14 +13,11 @@ public class Plats {
     private String ingredients;
     private String allergies;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "cook_id", nullable = false)
-    private CookProfile cook;
+    private String cookName;
 
+    public PlatsDto() {}
 
-    public Plats() { }
-
-    public Plats(long id, String nom, String description, float prix, String image, int note, int temps_preparation, String type_cuisine, int nombre_personnes, String ingredients, String allergies, CookProfile cook) {
+    public PlatsDto(long id, String nom, String description, float prix, String image, int note, int temps_preparation, String type_cuisine, int nombre_personnes, String ingredients, String allergies, String cookName) {
         this.id = id;
         this.nom = nom;
         this.description = description;
@@ -37,15 +29,7 @@ public class Plats {
         this.nombre_personnes = nombre_personnes;
         this.ingredients = ingredients;
         this.allergies = allergies;
-        this.cook = cook;
-    }
-
-    public CookProfile getCook() {
-        return cook;
-    }
-
-    public void setCook(CookProfile cook) {
-        this.cook = cook;
+        this.cookName = cookName;
     }
 
     public long getId() {
@@ -72,20 +56,20 @@ public class Plats {
         this.description = description;
     }
 
-    public float getPrix() {
-        return prix;
-    }
-
-    public void setPrix(float prix) {
-        this.prix = prix;
-    }
-
     public String getImage() {
         return image;
     }
 
     public void setImage(String image) {
         this.image = image;
+    }
+
+    public float getPrix() {
+        return prix;
+    }
+
+    public void setPrix(float prix) {
+        this.prix = prix;
     }
 
     public int getNote() {
@@ -96,20 +80,20 @@ public class Plats {
         this.note = note;
     }
 
-    public int getTemps_preparation() {
-        return temps_preparation;
-    }
-
-    public void setTemps_preparation(int temps_preparation) {
-        this.temps_preparation = temps_preparation;
-    }
-
     public String getType_cuisine() {
         return type_cuisine;
     }
 
     public void setType_cuisine(String type_cuisine) {
         this.type_cuisine = type_cuisine;
+    }
+
+    public int getTemps_preparation() {
+        return temps_preparation;
+    }
+
+    public void setTemps_preparation(int temps_preparation) {
+        this.temps_preparation = temps_preparation;
     }
 
     public int getNombre_personnes() {
@@ -134,5 +118,13 @@ public class Plats {
 
     public void setAllergies(String allergies) {
         this.allergies = allergies;
+    }
+
+    public String getCookName() {
+        return cookName;
+    }
+
+    public void setCookName(String cookName) {
+        this.cookName = cookName;
     }
 }

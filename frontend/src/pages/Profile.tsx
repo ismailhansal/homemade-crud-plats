@@ -34,15 +34,19 @@ interface User {
   // ajoute ici les autres champs que tu attends
 }
 
-interface Dish{
+interface Dish {
   id: number;
-  name : string;
-  price : number;
-  description? : string;
-  image_url? : string;
-  prep_time? : number;
-  cuisine? : string;
-  serving? : number;
+  nom: string;
+  prix: number;
+  description?: string;
+  image?: string;
+  note?: number;
+  temps_preparation?: number;
+  type_cuisine?: string;
+  nombre_personnes?: number;
+  ingredients?: string;
+  allergies?: string;
+  cookName?: string;
 }
 
 
@@ -176,31 +180,21 @@ const Profile: React.FC = () => {
 
 
 
-  const handleDishSubmit = async (formData) => {
+  const handleDishSubmit = async (formData: any) => {
     try {
-      // 1. Ajouter immédiatement le plat à la liste locale avant d'attendre la réponse du serveur
-      const newDish = {
-        ...formData,
-        id: Date.now(),  // Utiliser un ID temporaire si nécessaire
-      };
+      const token = localStorage.getItem("token");
+      const response = await axios.post('http://localhost:8080/api/plats/save', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
 
-      // Mettre à jour la liste des plats localement
-      setDishes(prevDishes => [...prevDishes, newDish]);
-
-      // 2. Envoyer la requête au serveur pour enregistrer le plat
-      const response = await axios.post('http://localhost:8080/api/plats/save', formData);
-      console.log('Plat créé avec succès:', response.data);
-
-      // 3. Si tu veux t'assurer que l'ID et les données du plat sont corrects, met à jour l'état local
-      // (par exemple, si le backend renvoie un ID généré ou modifie des données)
-      setDishes(prevDishes =>
-          prevDishes.map(dish => (dish.id === newDish.id ? response.data : dish))
-      );
-
-      setIsAddingDish(false); // Fermer le formulaire
+      // Update local state with the new dish from response
+      setDishes(prevDishes => [...prevDishes, response.data]);
+      setIsAddingDish(false);
     } catch (error) {
       console.error('Erreur lors de la création du plat:', error);
-      setIsAddingDish(false);
     }
   };
 
@@ -208,27 +202,18 @@ const Profile: React.FC = () => {
 
   const handleDishSubmitt = async (formData: any) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/plats/${formData.id}`, {
-        method: "PUT",
+      const token = localStorage.getItem("token");
+      const response = await axios.put(`http://localhost:8080/api/plats/${formData.id}`, formData, {
         headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData), // Pas besoin de transformation
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
-      if (!response.ok) {
-        throw new Error("Erreur lors de la mise à jour du plat");
-      }
-
-      const updatedDish = await response.json();
-      console.log("Plat mis à jour avec succès :", updatedDish);
-
-      // Met à jour l'état local
       setDishes(prev =>
-          prev.map(d => (d.id === updatedDish.id ? updatedDish : d))
+          prev.map(d => (d.id === formData.id ? response.data : d))
       );
-
-      setEditingDish(null); // Ferme le formulaire d'édition
+      setEditingDish(null);
     } catch (error) {
       console.error("Erreur pendant la mise à jour :", error);
     }
@@ -296,19 +281,29 @@ const [formData, setFormData] = useState({
   useEffect(() => {
     const fetchDishes = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/plats'); // URL de ton API backend
+        const token = localStorage.getItem("token");
+        const response = await fetch('http://localhost:8080/api/plats/my-dishes', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
         if (!response.ok) {
-          throw new Error('Erreur lors de la récupération des plats');
+          throw new Error('Error fetching user dishes');
         }
         const data = await response.json();
-        setDishes(data); // Mettre les plats récupérés dans l'état
+        setDishes(data);
       } catch (error) {
-        console.error('Erreur:', error); // Afficher l'erreur si elle survient
+        console.error('Error:', error);
       }
     };
 
-    fetchDishes(); // Appel de la fonction pour récupérer les plats
-  }, []); // Le tableau vide signifie que cet effet s'exécute uniquement au premier rendu du composant
+    // Only fetch dishes if user is a cook
+    if (isCook) {
+      fetchDishes();
+    }
+  }, [isCook]); // Add isCook as dependency
 
 
 
@@ -674,11 +669,20 @@ const [formData, setFormData] = useState({
                           </div>
                         </CardHeader>
                         <CardContent>
-                          <div className="space-y-4">
-                            {dishes.length === 0 ? (
-                                <p>Aucun plat disponible.</p> // Message si la liste des plats est vide
-                            ) : (
-                                dishes.map((dish: any) => (
+                          {loading ? (
+                              <div className="flex justify-center py-8">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                              </div>
+                          ) : dishes.length === 0 ? (
+                              <div className="text-center py-8">
+                                <p className="text-muted-foreground mb-4">You haven't added any dishes yet</p>
+                                <Button onClick={() => setIsAddingDish(true)}>
+                                  Add Your First Dish
+                                </Button>
+                              </div>
+                          ) : (
+                              <div className="space-y-4">
+                                {dishes.map((dish) => (
                                     <div
                                         key={dish.id}
                                         className="border rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
@@ -686,54 +690,43 @@ const [formData, setFormData] = useState({
                                       <div className="flex items-center gap-4">
                                         <div className="w-16 h-16 rounded-md bg-muted flex-shrink-0 overflow-hidden">
                                           <img
-                                              src={dish.image}
-                                              alt={dish.name}
+                                              src={dish.image || '/placeholder.jpg'}
+                                              alt={dish.nom}
                                               className="w-full h-full object-cover"
                                           />
                                         </div>
                                         <div>
                                           <p className="font-medium">{dish.nom}</p>
                                           <p className="text-sm text-muted-foreground">
-                                            {dish.prix ? `$${dish.prix.toFixed(2)}` : "Prix non disponible"}
+                                            ${dish.prix?.toFixed(2)}
+                                          </p>
+                                          <p className="text-xs text-muted-foreground">
+                                            {dish.type_cuisine}
                                           </p>
                                         </div>
                                       </div>
-                                  <div className="flex gap-2">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                          // Transformation : convertir les chaînes en tableaux
-                                          const transformedDish = {
-                                            ...dish,
-                                            ingredients: typeof dish.ingredients === "string"
-                                                ? dish.ingredients.split(",").map(i => i.trim())
-                                                : dish.ingredients,
-                                            allergies: typeof dish.allergies === "string"
-                                                ? dish.allergies.split(",").map(a => a.trim())
-                                                : dish.allergies,
-                                          };
-
-                                          console.log("Plat transformé pour édition:", transformedDish); // Débogage
-                                          setEditingDish(transformedDish);
-                                        }}
-                                    >
-                                      <Edit className="h-4 w-4 mr-1" />
-                                      Edit
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => handleDishDelete(dish.id)}
-                                    >
-                                      <Trash2 className="h-4 w-4 mr-1" />
-                                      Delete
-                                    </Button>
-                                  </div>
-                                </div>
-                                ))
-                            )}
-                          </div>
+                                      <div className="flex gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setEditingDish(dish)}
+                                        >
+                                          <Edit className="h-4 w-4 mr-1" />
+                                          Edit
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleDishDelete(dish.id)}
+                                        >
+                                          <Trash2 className="h-4 w-4 mr-1" />
+                                          Delete
+                                        </Button>
+                                      </div>
+                                    </div>
+                                ))}
+                              </div>
+                          )}
 
                           {/* Pagination for Dishes */}
                           {totalDishPages > 1 && (
