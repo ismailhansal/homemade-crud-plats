@@ -1,9 +1,6 @@
 package com.homemade.backend.entite;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 @Entity
 public class Plats {
@@ -21,10 +18,14 @@ public class Plats {
     private String ingredients;
     private String allergies;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cuisinier_id", nullable = false)
+    private CookProfile cook;
+
 
     public Plats() { }
 
-    public Plats(long id, String nom, String description, float prix, String image, int note, int temps_preparation, String type_cuisine, int nombre_personnes, String ingredients, String allergies) {
+    public Plats(long id, String nom, String description, float prix, String image, int note, int temps_preparation, String type_cuisine, int nombre_personnes, String ingredients, String allergies, CookProfile cook) {
         this.id = id;
         this.nom = nom;
         this.description = description;
@@ -36,6 +37,15 @@ public class Plats {
         this.nombre_personnes = nombre_personnes;
         this.ingredients = ingredients;
         this.allergies = allergies;
+        this.cook = cook;
+    }
+
+    public CookProfile getCook() {
+        return cook;
+    }
+
+    public void setCook(CookProfile cook) {
+        this.cook = cook;
     }
 
     public long getId() {

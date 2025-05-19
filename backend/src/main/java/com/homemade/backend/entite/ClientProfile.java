@@ -14,6 +14,7 @@ public class ClientProfile {
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
+
     private String adresseClient;
 
     @OneToOne(cascade = CascadeType.ALL)
@@ -26,6 +27,8 @@ public class ClientProfile {
         this.idClient = idClient;
         this.adresseClient = adresseClient;
     }
+
+
 
     public Long getIdClient() {
         return idClient;

@@ -57,6 +57,7 @@ public class User {
         this.password = password;
     }
 
+
     public String getPhoneNumber() {
         return phoneNumber;
     }
@@ -114,14 +115,6 @@ public class User {
 
 
 
-    public Cart getCart() {
-        return cart;
-    }
-
-    public void setCart(Cart cart) {
-        this.cart = cart;
-    }
-
     public LocalDate getDateCreation() {
         return dateCreation;
     }
@@ -159,5 +152,9 @@ public class User {
     }
     public boolean hasRole(Role role) {
         return this.roles.contains(role);
+    }
+
+    public String getFullName(){
+        return this.firstname + " " + this.lastname;
     }
 }

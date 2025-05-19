@@ -17,8 +17,36 @@ public class Cart {
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> items = new ArrayList<>();
 
+    private float fraisLivraison = 0.0F;
+
+
     // getters, setters
 
+
+    public Cart() {
+    }
+
+    public Cart(ClientProfile clientProfile, List<CartItem> items, float fraisLivraison) {
+        this.clientProfile = clientProfile;
+        this.items = items;
+        this.fraisLivraison = fraisLivraison;
+    }
+
+    public ClientProfile getClientProfile() {
+        return clientProfile;
+    }
+
+    public void setClientProfile(ClientProfile clientProfile) {
+        this.clientProfile = clientProfile;
+    }
+
+    public float getFraisLivraison() {
+        return fraisLivraison;
+    }
+
+    public void setFraisLivraison(float fraisLivraison) {
+        this.fraisLivraison = fraisLivraison;
+    }
 
     public Long getId() {
         return id;
@@ -26,14 +54,6 @@ public class Cart {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
     }
 
     public List<CartItem> getItems() {

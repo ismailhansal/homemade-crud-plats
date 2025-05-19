@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,33 @@ const Cart = () => {
   const [items, setItems] = useState(cartItems);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"card" | "cash">("card");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("/api/cart/", {
+          headers:{
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if(!res.ok) throw new Error("Failed to fetch cart");
+        const data = await res.json();
+        setItems(data);
+      }catch (error){
+        console.error(error);
+        toast({
+          title: "Error Loading Cart!",
+          description: "Please Try Again Later",
+          variant: "destructive",
+        });
+      }finally {
+        setLoading(false);
+      }
+    };
+    fetchCart();
+  }, []);
 
   const updateQuantity = (id: number, change: number) => {
     setItems(

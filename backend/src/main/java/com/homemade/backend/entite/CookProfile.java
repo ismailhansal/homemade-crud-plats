@@ -20,7 +20,7 @@ public class CookProfile {
     private Boolean Verified = false;
     private float cookRating = 0.0F;
     private String specialty;
-    private float earnings;
+    private float earnings = 0.0F;
 
     public CookProfile() {
     }
@@ -31,6 +31,7 @@ public class CookProfile {
         this.cookAddress = cookAddress;
         this.specialty = specialty;
     }
+
 
 
     public Long getIdCook() {

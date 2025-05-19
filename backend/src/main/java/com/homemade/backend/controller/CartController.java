@@ -1,10 +1,19 @@
 package com.homemade.backend.controller;
 
 
+import com.homemade.backend.dto.CartItemDto;
 import com.homemade.backend.entite.Cart;
-import com.homemade.backend.service.CartService;
+import com.homemade.backend.entite.User;
+import com.homemade.backend.service.AuthenticationService;
+import com.homemade.backend.service.CartServiceImpl;
+import com.homemade.backend.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/cart")
@@ -12,10 +21,33 @@ import org.springframework.web.bind.annotation.*;
 
 public class CartController {
 
-    private final CartService cartService;
+    private final CartServiceImpl cartService;
+    private final AuthenticationService authenticationService;
+    private final UserService userService;
 
-    public CartController(CartService cartService) {
+    @Autowired
+    public CartController(CartServiceImpl cartService, AuthenticationService authenticationService, UserService userService) {
+
         this.cartService = cartService;
+        this.authenticationService = authenticationService;
+        this.userService = userService;
+    }
+
+    public ResponseEntity<List<CartItemDto>> getCartItems(Principal principal) {
+        User user = userService.getUserByUsername(principal.getName());
+        Cart cart = cartService.getCartByUserId(user.getId());
+
+        List<CartItemDto> cartItems = cart.getItems().stream().map(item -> new CartItemDto(
+                item.getPlat().getId(),
+                item.getPlat().getNom(),
+                item.getPlat().getPrix(),
+                item.getQuantity(),
+                item.getPlat().getImage(),
+                item.getPlat().getCook().getUser().getFullName()
+        )).toList();
+
+        return ResponseEntity.ok(cartItems);
+
     }
 
     /**
