@@ -29,7 +29,7 @@ interface User {
   lastname: string;
   phoneNumber : string;
   email: string;
-  address: string;
+  address?: string;
   roles: string[];
   // ajoute ici les autres champs que tu attends
 }

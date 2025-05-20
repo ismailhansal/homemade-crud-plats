@@ -5,12 +5,17 @@ import com.homemade.backend.dto.LoginRequest;
 import com.homemade.backend.dto.RegisterRequest;
 import com.homemade.backend.dto.UpdateUserRequest;
 import com.homemade.backend.entite.User;
+import com.homemade.backend.enums.Role;
 import com.homemade.backend.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/auth")
@@ -52,7 +57,7 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<User> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<Map<String,Object>> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null) {
             return ResponseEntity.status(401).build(); // pas authentifié
         }
@@ -63,8 +68,21 @@ public class AuthController {
         if (user == null) {
             return ResponseEntity.notFound().build();
         }
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", user.getId());
+        response.put("firstname", user.getFirstname());
+        response.put("lastname", user.getLastname());
+        response.put("email", user.getEmail());
+        response.put("phoneNumber", user.getPhoneNumber());
+        response.put("roles", user.getRoles().stream().map(Role::name).collect(Collectors.toList()));
 
-        return ResponseEntity.ok(user);
+        if (user.getClientProfile() != null) {
+            response.put("address", user.getClientProfile().getAdresseClient());
+        } else if (user.getCookProfile() != null) {
+            response.put("address", user.getCookProfile().getCookAddress());
+        }
+
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/me")
