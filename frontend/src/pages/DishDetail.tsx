@@ -41,102 +41,77 @@ interface Plat {
   nombre_personnes: number;
   ingredients: string;
   allergies: string;
+  cookName: string;
 }
 
-// Sample data based on the ID parameter
-const getDishById = (id: string) => {
-  const dishes = [
-    {
-      id: 1,
-      name: "Homemade Lasagna",
-      description: "Traditional Italian lasagna with béchamel sauce and ground beef filling. Each layer is carefully prepared with fresh ingredients. Served with a side of garlic bread.",
-      price: 15.99,
-      image: "https://images.unsplash.com/photo-1574894709920-11b28e7367e3?auto=format&fit=crop&w=1200&h=800",
-      cook: {
-        name: "Maria Giordano",
-        avatar: "https://images.unsplash.com/photo-1566554273541-37a9ca77b91f?auto=format&fit=crop&w=150&h=150",
-        rating: 4.8,
-        totalReviews: 124,
-        bio: "Italian home cook with 20+ years of experience. I specialize in traditional Italian dishes passed down through generations.",
-        location: "Little Italy, NY",
-        otherDishes: [
-          {
-            id: 2,
-            name: "Spaghetti Carbonara",
-            price: 12.99,
-            image: "https://images.unsplash.com/photo-1612874742237-6526221588e3?auto=format&fit=crop&w=500&h=300",
-            cuisine: "Italian"
-          },
-          {
-            id: 3,
-            name: "Tiramisu",
-            price: 8.99,
-            image: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=500&h=300",
-            cuisine: "Italian"
-          },
-          {
-            id: 4,
-            name: "Risotto Milanese",
-            price: 14.99,
-            image: "https://images.unsplash.com/photo-1633321702518-7feccafb94d5?auto=format&fit=crop&w=500&h=300",
-            cuisine: "Italian"
-          },
-          {
-            id: 5,
-            name: "Chicken Cacciatore",
-            price: 16.99,
-            image: "https://images.unsplash.com/photo-1598103442097-8b74394b95c6?auto=format&fit=crop&w=500&h=300",
-            cuisine: "Italian"
-          },
-          {
-            id: 6,
-            name: "Osso Buco",
-            price: 19.99,
-            image: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=500&h=300",
-            cuisine: "Italian"
-          }
-        ]
-      },
-      cuisine: "Italian",
-      deliveryTime: "30-45 min",
-      ingredients: ["Pasta sheets", "Ground beef", "Tomato sauce", "Béchamel sauce", "Mozzarella cheese", "Parmesan cheese", "Herbs and spices"],
-      allergens: ["Gluten", "Dairy", "Eggs"],
-      reviews: [
-        { id: 1, user: "John D.", avatar: "", rating: 5, comment: "Best lasagna I've had in a long time!", date: "2 days ago" },
-        { id: 2, user: "Sarah W.", avatar: "", rating: 4, comment: "Very tasty and generous portion!", date: "1 week ago" },
-        { id: 3, user: "Mike R.", avatar: "", rating: 5, comment: "Absolutely delicious. Will order again!", date: "2 weeks ago" },
-      ],
-    },
-  ];
+interface CookProfile {
+  idCook: number;
+  cookRating: number;
+  specialty: string;
+  cookAddress: string;
+  verified: boolean;
+  user: {
+    firstname: string;
+    lastname: string;
+    email: string;
+    phoneNumber: string;
+  };
+}
 
-  return dishes.find(dish => dish.id === parseInt(id)) || dishes[0];
-};
+interface OtherDish {
+  id: number;
+  nom: string;
+  prix: number;
+  image: string;
+  type_cuisine: string;
+}
 
 const DishDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [plat, setPlat] = useState<Plat | null>(null);
+  const [cookProfile, setCookProfile] = useState<CookProfile | null>(null);
+  const [otherDishes, setOtherDishes] = useState<OtherDish[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const dish = getDishById(id || "1");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!id) return;
 
-    fetch(`http://localhost:8080/api/plats/${id}`)
-        .then(res => {
-          if (!res.ok) throw new Error("Failed to fetch dish");
-          return res.json();
-        })
-        .then(data => setPlat(data))
-        .catch(error => {
-          console.error('Fetch error:', error);
-          toast({
-            title: "Error loading dish",
-            description: error.message,
-            variant: "destructive"
-          });
+    const fetchDishData = async () => {
+      try {
+        setIsLoading(true);
+        // Fetch the dish data
+        const dishResponse = await fetch(`http://localhost:8080/api/plats/${id}`);
+        if (!dishResponse.ok) throw new Error("Failed to fetch dish");
+        const dishData = await dishResponse.json();
+        setPlat(dishData);
+
+        // Fetch cook's other dishes
+        const cookDishesResponse = await fetch(`http://localhost:8080/api/plats/my-dishes`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem("token")}`
+          }
         });
+        if (cookDishesResponse.ok) {
+          const cookDishes = await cookDishesResponse.json();
+          setOtherDishes(cookDishes.filter((dish: OtherDish) => dish.id !== parseInt(id)));
+        }
+
+      } catch (error) {
+        console.error('Fetch error:', error);
+        toast({
+          title: "Error loading dish",
+          description: error instanceof Error ? error.message : "Unknown error",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDishData();
   }, [id]);
 
   const decreaseQuantity = () => {
@@ -199,9 +174,37 @@ const DishDetail = () => {
     }
   };
 
-  if (!plat) {
-    return <div className="container mx-auto px-4 py-8">Loading...</div>;
+  if (isLoading) {
+    return (
+        <Layout>
+          <div className="container mx-auto px-4 py-8 flex justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        </Layout>
+    );
   }
+
+  if (!plat) {
+    return (
+        <Layout>
+          <div className="container mx-auto px-4 py-8">
+            <Button
+                variant="ghost"
+                className="mb-6 pl-0"
+                onClick={() => navigate("/browse")}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dishes
+            </Button>
+            <div className="text-center">Dish not found</div>
+          </div>
+        </Layout>
+    );
+  }
+
+  // Parse ingredients and allergies from strings to arrays
+  const ingredientsList = plat.ingredients.split(',').map(item => item.trim());
+  const allergensList = plat.allergies.split(',').map(item => item.trim());
 
   return (
       <Layout>
@@ -220,40 +223,47 @@ const DishDetail = () => {
               <div className="rounded-lg overflow-hidden mb-6">
                 <img
                     src={plat.image}
-                    alt={dish.name}
+                    alt={plat.nom}
                     className="w-full h-auto object-cover"
                 />
               </div>
 
-              <div className="mb-6 p-4 bg-accent rounded-lg">
-                <div className="flex items-start gap-4">
-                  <Avatar className="h-16 w-16 border-2 border-background">
-                    <AvatarImage src={dish.cook.avatar} alt={dish.cook.name} />
-                    <AvatarFallback>
-                      <ChefHat className="h-8 w-8" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="flex justify-between">
-                      <div>
-                        <h3 className="text-lg font-semibold">{dish.cook.name}</h3>
-                        <div className="flex items-center mt-1">
-                          <Star className="h-4 w-4 fill-primary text-primary mr-1" />
-                          <span className="font-medium text-sm">{dish.cook.rating}</span>
-                          <span className="text-xs text-muted-foreground ml-1">
-                          ({dish.cook.totalReviews} reviews)
-                        </span>
+              {plat.cookName && (
+                  <div className="mb-6 p-4 bg-accent rounded-lg">
+                    <div className="flex items-start gap-4">
+                      <Avatar className="h-16 w-16 border-2 border-background">
+                        <AvatarFallback>
+                          <ChefHat className="h-8 w-8" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="flex justify-between">
+                          <div>
+                            <h3 className="text-lg font-semibold">{plat.cookName}</h3>
+                            <div className="flex items-center mt-1">
+                              <Star className="h-4 w-4 fill-primary text-primary mr-1" />
+                              <span className="font-medium text-sm">{plat.note}</span>
+                              <span className="text-xs text-muted-foreground ml-1">
+                            (reviews coming soon)
+                          </span>
+                            </div>
+                          </div>
+                          {cookProfile?.cookAddress && (
+                              <div className="flex items-center text-sm text-muted-foreground">
+                                <MapPin className="h-4 w-4 mr-1" />
+                                {cookProfile.cookAddress}
+                              </div>
+                          )}
                         </div>
-                      </div>
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        {dish.cook.location}
+                        {cookProfile?.specialty && (
+                            <p className="mt-2 text-sm text-muted-foreground">
+                              Specialty: {cookProfile.specialty}
+                            </p>
+                        )}
                       </div>
                     </div>
-                    <p className="mt-2 text-sm text-muted-foreground">{dish.cook.bio}</p>
                   </div>
-                </div>
-              </div>
+              )}
 
               <Tabs defaultValue="details" className="w-full">
                 <TabsList className="w-full grid grid-cols-3">
@@ -277,7 +287,7 @@ const DishDetail = () => {
                     </div>
                     <div className="flex items-center">
                       <Users className="h-5 w-5 mr-2 text-primary" />
-                      <span>Serves 1</span>
+                      <span>Serves {plat.nombre_personnes}</span>
                     </div>
                   </div>
 
@@ -287,63 +297,65 @@ const DishDetail = () => {
                       Allergens
                     </h3>
                     <div className="flex flex-wrap gap-2">
-                      {plat.allergies.split(',').map((allergen) => (
+                      {allergensList.map((allergen, index) => (
                           <div
-                              key={allergen.trim()}
+                              key={index}
                               className="bg-muted px-3 py-1 rounded-full text-sm"
                           >
-                            {allergen.trim()}
+                            {allergen}
                           </div>
                       ))}
                     </div>
                   </div>
 
-                  <div className="mt-8">
-                    <h3 className="text-xl font-semibold mb-4">More from {dish.cook.name}</h3>
-                    <Carousel className="w-full">
-                      <CarouselContent>
-                        {dish.cook.otherDishes.map((otherDish) => (
-                            <CarouselItem key={otherDish.id} className="md:basis-1/3">
-                              <Card className="card-hover">
-                                <CardContent className="p-0">
-                                  <div
-                                      className="cursor-pointer"
-                                      onClick={() => navigate(`/dish/${otherDish.id}`)}
-                                  >
-                                    <div className="h-40 rounded-t-lg overflow-hidden">
-                                      <img
-                                          src={otherDish.image}
-                                          alt={otherDish.name}
-                                          className="w-full h-full object-cover"
-                                      />
-                                    </div>
-                                    <div className="p-4">
-                                      <h4 className="font-medium">{otherDish.name}</h4>
-                                      <div className="flex justify-between items-center mt-2">
-                                    <span className="text-primary font-medium">
-                                      ${otherDish.price.toFixed(2)}
-                                    </span>
-                                        <span className="text-xs text-muted-foreground">
-                                      {otherDish.cuisine}
-                                    </span>
+                  {otherDishes.length > 0 && (
+                      <div className="mt-8">
+                        <h3 className="text-xl font-semibold mb-4">More from this cook</h3>
+                        <Carousel className="w-full">
+                          <CarouselContent>
+                            {otherDishes.map((dish) => (
+                                <CarouselItem key={dish.id} className="md:basis-1/3">
+                                  <Card className="card-hover">
+                                    <CardContent className="p-0">
+                                      <div
+                                          className="cursor-pointer"
+                                          onClick={() => navigate(`/dish/${dish.id}`)}
+                                      >
+                                        <div className="h-40 rounded-t-lg overflow-hidden">
+                                          <img
+                                              src={dish.image}
+                                              alt={dish.nom}
+                                              className="w-full h-full object-cover"
+                                          />
+                                        </div>
+                                        <div className="p-4">
+                                          <h4 className="font-medium">{dish.nom}</h4>
+                                          <div className="flex justify-between items-center mt-2">
+                                      <span className="text-primary font-medium">
+                                        ${dish.prix.toFixed(2)}
+                                      </span>
+                                            <span className="text-xs text-muted-foreground">
+                                        {dish.type_cuisine}
+                                      </span>
+                                          </div>
+                                        </div>
                                       </div>
-                                    </div>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            </CarouselItem>
-                        ))}
-                      </CarouselContent>
-                      <CarouselPrevious className="left-2" />
-                      <CarouselNext className="right-2" />
-                    </Carousel>
-                  </div>
+                                    </CardContent>
+                                  </Card>
+                                </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                          <CarouselPrevious className="left-2" />
+                          <CarouselNext className="right-2" />
+                        </Carousel>
+                      </div>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="ingredients" className="pt-4">
                   <h2 className="text-xl font-semibold mb-4">Ingredients</h2>
                   <ul className="space-y-2">
-                    {dish.ingredients.map((ingredient, index) => (
+                    {ingredientsList.map((ingredient, index) => (
                         <li key={index} className="flex items-center">
                           <div className="w-2 h-2 rounded-full bg-primary mr-3"></div>
                           {ingredient}
@@ -357,56 +369,15 @@ const DishDetail = () => {
                     <h2 className="text-xl font-semibold">Customer Reviews</h2>
                     <div className="flex items-center">
                       <Star className="h-5 w-5 fill-primary text-primary mr-1" />
-                      <span className="font-semibold">{dish.cook.rating}</span>
+                      <span className="font-semibold">{plat.note}</span>
                       <span className="text-muted-foreground ml-1">
-                      ({dish.cook.totalReviews} reviews)
+                      (reviews coming soon)
                     </span>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    {dish.reviews.map((review) => (
-                        <Card key={review.id}>
-                          <CardContent className="pt-6">
-                            <div className="flex justify-between items-start mb-2">
-                              <div className="flex items-center">
-                                <Avatar className="h-8 w-8 mr-2">
-                                  <AvatarFallback>{review.user.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <div className="font-medium">{review.user}</div>
-                                  <div className="text-xs text-muted-foreground">
-                                    {review.date}
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex items-center">
-                                {[...Array(5)].map((_, i) => (
-                                    <Star
-                                        key={i}
-                                        className={`h-4 w-4 ${
-                                            i < review.rating
-                                                ? "fill-primary text-primary"
-                                                : "text-muted"
-                                        }`}
-                                    />
-                                ))}
-                              </div>
-                            </div>
-                            <p className="text-muted-foreground">{review.comment}</p>
-                            <div className="flex items-center gap-4 mt-4">
-                              <Button variant="ghost" size="sm" className="h-8">
-                                <ThumbsUp className="h-4 w-4 mr-2" />
-                                Helpful
-                              </Button>
-                              <Button variant="ghost" size="sm" className="h-8">
-                                <MessageSquare className="h-4 w-4 mr-2" />
-                                Reply
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                    ))}
+                  <div className="text-center text-muted-foreground py-8">
+                    No reviews yet. Be the first to review!
                   </div>
                 </TabsContent>
               </Tabs>
@@ -415,12 +386,12 @@ const DishDetail = () => {
             <div className="lg:col-span-2">
               <Card className="sticky top-24 animate-scale-in">
                 <CardContent className="pt-6">
-                  <h1 className="text-2xl font-bold mb-2">{dish.name}</h1>
+                  <h1 className="text-2xl font-bold mb-2">{plat.nom}</h1>
                   <div className="flex items-center mb-4">
                     <Star className="h-4 w-4 fill-primary text-primary mr-1" />
-                    <span className="font-medium mr-1">{dish.cook.rating}</span>
+                    <span className="font-medium mr-1">{plat.note}</span>
                     <span className="text-muted-foreground">
-                    ({dish.cook.totalReviews} reviews)
+                    (reviews coming soon)
                   </span>
                   </div>
 
