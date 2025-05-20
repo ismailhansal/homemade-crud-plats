@@ -266,7 +266,131 @@ const Cart = () => {
                   </Card>
                 </div>
 
-                {/* Order Summary Section remains same */}
+                <div className="lg:col-span-1">
+                  <Card className="sticky top-24 animate-scale-in">
+                    <CardHeader>
+                      <CardTitle>Order Summary</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Subtotal</span>
+                        <span>${subtotal.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Delivery Fee</span>
+                        <span>
+                      {deliveryFee === 0 ? (
+                          <span className="text-primary">Free</span>
+                      ) : (
+                          `$${deliveryFee.toFixed(2)}`
+                      )}
+                    </span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between font-semibold">
+                        <span>Total</span>
+                        <span>${total.toFixed(2)}</span>
+                      </div>
+
+                      {deliveryFee === 0 && (
+                          <div className="text-primary text-sm text-center mt-2">
+                            You qualify for free delivery!
+                          </div>
+                      )}
+
+                      {deliveryFee > 0 && (
+                          <div className="text-sm text-center mt-2">
+                            Add ${(20 - subtotal).toFixed(2)} more for free delivery
+                          </div>
+                      )}
+
+                      <div className="pt-4">
+                        <Label className="mb-2 block">Payment Method</Label>
+                        <RadioGroup defaultValue="card" value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as "card" | "cash")}>
+                          <div className="flex items-center space-x-2 border rounded-md p-3 mb-2">
+                            <RadioGroupItem value="card" id="card" />
+                            <Label htmlFor="card" className="flex items-center cursor-pointer">
+                              <CreditCard className="h-4 w-4 mr-2 text-muted-foreground" />
+                              Pay with Card
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2 border rounded-md p-3">
+                            <RadioGroupItem value="cash" id="cash" />
+                            <Label htmlFor="cash" className="flex items-center cursor-pointer">
+                              <Wallet className="h-4 w-4 mr-2 text-muted-foreground" />
+                              Pay with Cash on Delivery
+                            </Label>
+                          </div>
+                        </RadioGroup>
+                      </div>
+                    </CardContent>
+                    <CardFooter>
+                      <Button
+                          className="w-full"
+                          onClick={handleProceedToCheckout}
+                      >
+                        Proceed to Checkout
+                      </Button>
+
+                      <Dialog open={isPaymentModalOpen && paymentMethod === "card"} onOpenChange={setIsPaymentModalOpen}>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Payment Information</DialogTitle>
+                            <DialogDescription>
+                              Enter your payment details to complete your order.
+                            </DialogDescription>
+                          </DialogHeader>
+
+                          <form onSubmit={handleCheckout} className="space-y-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="card-name">Cardholder Name</Label>
+                              <Input
+                                  id="card-name"
+                                  placeholder="John Doe"
+                                  required
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="card-number">Card Number</Label>
+                              <div className="relative">
+                                <Input
+                                    id="card-number"
+                                    placeholder="1234 5678 9012 3456"
+                                    required
+                                />
+                                <CreditCard className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="expiry">Expiry Date</Label>
+                                <Input
+                                    id="expiry"
+                                    placeholder="MM/YY"
+                                    required
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="cvv">CVV</Label>
+                                <Input
+                                    id="cvv"
+                                    placeholder="123"
+                                    required
+                                />
+                              </div>
+                            </div>
+
+                            <DialogFooter className="mt-6">
+                              <Button type="submit" className="w-full">
+                                Pay ${total.toFixed(2)}
+                              </Button>
+                            </DialogFooter>
+                          </form>
+                        </DialogContent>
+                      </Dialog>
+                    </CardFooter>
+                  </Card>
+                </div>
               </div>
           )}
         </div>
