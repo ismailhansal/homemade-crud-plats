@@ -179,6 +179,15 @@ const Profile: React.FC = () => {
   }, []);
 
 
+  const handleEditDish = (dish: Dish) => {
+    setEditingDish({
+      ...dish,
+      ingredients: dish.ingredients?.split(',').map(i => i.trim()) || [],
+      allergies: dish.allergies?.split(',').map(i => i.trim()) || []
+    });
+  };
+
+
 
   const handleDishSubmit = async (formData: any) => {
     try {
@@ -709,7 +718,7 @@ const [formData, setFormData] = useState({
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => setEditingDish(dish)}
+                                            onClick={() => handleEditDish(dish)}
                                         >
                                           <Edit className="h-4 w-4 mr-1" />
                                           Edit
@@ -792,6 +801,18 @@ const [formData, setFormData] = useState({
                               onSubmit={handleDishSubmit}
                               onCancel={() => setIsAddingDish(false)}
                               submitLabel="Add Dish"
+                              initialValues={{
+                                nom: '',
+                                description: '',
+                                prix: 0,
+                                image: '',
+                                note: 0,
+                                temps_preparation: 0,
+                                type_cuisine: '',
+                                nombre_personnes: 1,
+                                ingredients: [],
+                                allergies: []
+                              }}
                           />
                         </DialogContent>
                       </Dialog>
@@ -801,8 +822,6 @@ const [formData, setFormData] = useState({
                           open={!!editingDish}
                           onOpenChange={(open) => !open && setEditingDish(null)}
                       >
-
-
                         <DialogContent className="sm:max-w-md md:max-w-lg">
                           <DialogHeader>
                             <DialogTitle>Edit Dish</DialogTitle>

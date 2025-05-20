@@ -66,7 +66,7 @@ const Browse = () => {
 
   const navigate = useNavigate();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [priceRange, setPriceRange] = useState([0, 30]);
+  const [priceRange, setPriceRange] = useState([0, 300]);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -83,7 +83,7 @@ const Browse = () => {
         cuisine.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesPrice = dish.prix >= priceRange[0] && dish.prix <= priceRange[1];
-    const matchesCuisine = activeTab === "all" || cuisine.toLowerCase() === activeTab.toLowerCase();
+    const matchesCuisine = activeTab === "all" || dish.type_cuisine.toLowerCase() === activeTab.trim().toLowerCase();
 
     return matchesSearch && matchesPrice && matchesCuisine;
   });
@@ -134,7 +134,7 @@ const Browse = () => {
                     <Slider
                       value={priceRange}
                       min={0}
-                      max={50}
+                      max={500}
                       step={1}
                       onValueChange={(value) => {
                         setPriceRange(value);
@@ -177,19 +177,31 @@ const Browse = () => {
           </Card>
         )}
 
-        <Tabs value={activeTab} onValueChange={(tab) => {
-          setActiveTab(tab);
-          setCurrentPage(1); // Reset to first page on tab change
-        }} className="mb-8">
+        <Tabs
+            value={activeTab}
+            onValueChange={(tab) => {
+              setActiveTab(tab);
+              setCurrentPage(1); // Reset to first page on tab change
+            }}
+            className="mb-8"
+        >
           <TabsList className="w-full justify-start overflow-auto">
             <TabsTrigger value="all">All Cuisines</TabsTrigger>
             <TabsTrigger value="Italian">Italian</TabsTrigger>
-            <TabsTrigger value="Indian">Indian</TabsTrigger>
-            <TabsTrigger value="Asian">Asian</TabsTrigger>
             <TabsTrigger value="Mexican">Mexican</TabsTrigger>
-            <TabsTrigger value="Mediterranean">Mediterranean</TabsTrigger>
+            <TabsTrigger value="Chinese">Chinese</TabsTrigger>
+            <TabsTrigger value="Indian">Indian</TabsTrigger>
+            <TabsTrigger value="Japanese">Japanese</TabsTrigger>
             <TabsTrigger value="Thai">Thai</TabsTrigger>
-            <TabsTrigger value="Seafood">Seafood</TabsTrigger>
+            <TabsTrigger value="French">French</TabsTrigger>
+            <TabsTrigger value="Mediterranean">Mediterranean</TabsTrigger>
+            <TabsTrigger value="American">American</TabsTrigger>
+            <TabsTrigger value="Middle Eastern">Middle Eastern</TabsTrigger>
+            <TabsTrigger value="Korean">Korean</TabsTrigger>
+            <TabsTrigger value="Vietnamese">Vietnamese</TabsTrigger>
+            <TabsTrigger value="Greek">Greek</TabsTrigger>
+            <TabsTrigger value="Spanish">Spanish</TabsTrigger>
+            <TabsTrigger value="Other">Other</TabsTrigger>
           </TabsList>
         </Tabs>
 
