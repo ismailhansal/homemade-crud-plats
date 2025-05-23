@@ -7,6 +7,7 @@ import com.homemade.backend.entite.Plats;
 import com.homemade.backend.entite.User;
 import com.homemade.backend.service.PlatsService;
 import com.homemade.backend.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -61,7 +62,7 @@ public PlatsController(PlatsService platsService, UserService userService, Plats
 
     // Endpoint pour créer un nouveau plat
     @PostMapping("/save")
-    public ResponseEntity<PlatsDto> createPlat(@RequestBody PlatsDto platDto, Principal principal) {
+    public ResponseEntity<PlatsDto> createPlat(@Valid @RequestBody PlatsDto platDto, Principal principal) {
             PlatsDto createdPlat = platsService.createPlat(platDto, principal);
             return new ResponseEntity<>(createdPlat, HttpStatus.CREATED);
 
@@ -69,7 +70,7 @@ public PlatsController(PlatsService platsService, UserService userService, Plats
 
     // Endpoint pour modifier un plat
     @PutMapping("/{id}")
-    public ResponseEntity<PlatsDto> updatePlat(@PathVariable Long id, @RequestBody PlatsDto platDto) {
+    public ResponseEntity<PlatsDto> updatePlat(@PathVariable Long id, @Valid @RequestBody PlatsDto platDto) {
         PlatsDto updatedPlat = platsService.modifierPlat(platDto, id);
         return ResponseEntity.ok(updatedPlat);
     }

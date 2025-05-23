@@ -3,6 +3,7 @@ package com.homemade.backend.entite;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 @Entity
 public class CookProfile {
@@ -16,10 +17,19 @@ public class CookProfile {
     @JsonBackReference
     private User user;
 
+    @Size(max = 200, message = "Address cannot exceed 200 characters")
     private String cookAddress;
     private Boolean Verified = false;
+
+    @DecimalMin(value = "0.0", message = "Rating cannot be negative")
+    @DecimalMax(value = "5.0", message = "Rating cannot exceed 5.0")
     private float cookRating = 0.0F;
+
+    @NotBlank(message = "Specialty is required")
+    @Size(max = 100, message = "Specialty cannot exceed 100 characters")
     private String specialty;
+
+    @DecimalMin(value = "0.0", message = "Earnings cannot be negative")
     private float earnings = 0.0F;
 
     public CookProfile() {

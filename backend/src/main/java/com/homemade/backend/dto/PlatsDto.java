@@ -1,14 +1,30 @@
 package com.homemade.backend.dto;
+import jakarta.validation.constraints.*;
 
 public class PlatsDto {
     private long id;
+    @NotBlank(message = "Dish name is required")
+    @Size(max = 100, message = "Dish name cannot exceed 100 characters")
     private String nom;
+
+    @Size(max = 500, message = "Description cannot exceed 500 characters")
     private String description;
+
+    @DecimalMin(value = "0.01", message = "Price must be at least 0.01")
     private float prix;
     private String image;
+
+    @Min(value = 0, message = "Rating cannot be negative")
+    @Max(value = 5, message = "Rating cannot exceed 5")
     private int note;
+
+    @Min(value = 1, message = "Preparation time must be at least 1 minute")
     private int temps_preparation;
+
+    @NotBlank(message = "Cuisine type is required")
     private String type_cuisine;
+
+    @Min(value = 1, message = "Must serve at least 1 person")
     private int nombre_personnes;
     private String ingredients;
     private String allergies;

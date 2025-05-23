@@ -1,6 +1,7 @@
 package com.homemade.backend.entite;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 
 @Entity
 public class CartItem {
@@ -8,6 +9,7 @@ public class CartItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Min(value = 1, message = "Quantity must be at least 1")
     private int quantity;
 
     @ManyToOne

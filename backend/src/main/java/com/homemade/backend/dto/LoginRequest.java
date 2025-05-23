@@ -1,8 +1,15 @@
 package com.homemade.backend.dto;
 
+import jakarta.validation.constraints.*;
+
 public class LoginRequest {
     private String username;
+
+    @NotBlank(message = "Password is required")
     private String password;
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "Email should be valid")
     private String email;
 
     // Getters et setters

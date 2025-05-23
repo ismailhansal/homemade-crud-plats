@@ -4,6 +4,7 @@ package com.homemade.backend.entite;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.homemade.backend.enums.Role;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -17,9 +18,18 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String username;
+
+    @NotBlank(message = "Firstname is required")
+    @Size(max=50, message = "Maximum 50")
     private String firstname;
+
+    @NotBlank(message = "Last name is required")
+    @Size(max = 50, message = "Last name cannot exceed 50 characters")
     private String lastname;
     private String phoneNumber;
+
+    @Email(message = "Email should be valid")
+    @Column(unique = true)
     private String email;
     private String password; // Le mot de passe sera stocké sous forme cryptée
     private LocalDate dateCreation;

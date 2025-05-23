@@ -20,7 +20,6 @@ public class Cart {
     private float fraisLivraison = 0.0F;
 
 
-    // getters, setters
 
 
     public Cart() {

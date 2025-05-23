@@ -7,6 +7,7 @@ import com.homemade.backend.dto.UpdateUserRequest;
 import com.homemade.backend.entite.User;
 import com.homemade.backend.enums.Role;
 import com.homemade.backend.service.AuthenticationService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -30,7 +31,7 @@ public class AuthController {
 
     // Endpoint pour l'authentification de l'utilisateur
     @PostMapping("/login/client")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
         // Authentifier l'utilisateur avec les informations de connexion
         String token = authenticationService.authenticate(loginRequest.getEmail(), loginRequest.getPassword());
 
@@ -47,7 +48,7 @@ public class AuthController {
     }
 
     @PostMapping("/signup/client")
-    public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest request) {
         try {
             authenticationService.registerUser(request);
             return ResponseEntity.ok("User registered successfully");
@@ -88,7 +89,7 @@ public class AuthController {
     @PutMapping("/me")
     public ResponseEntity<User> updateUser(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody UpdateUserRequest request) {
+            @Valid  @RequestBody UpdateUserRequest request) {
 
         if (userDetails == null) {
             return ResponseEntity.status(401).build();
